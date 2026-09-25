@@ -1,0 +1,105 @@
+# NOEDIS org-blueprint
+# Generated from MASTER v0.3.0
+
+company:
+  name: "Noedis"
+  issuePrefix: "NOE"
+  status: "active"
+  requireBoardApprovalForNewAgents: true
+
+runtime:
+  adapterType: pi_local
+  provider: openrouter
+  credential: OPENROUTER_API_KEY
+
+founder:
+  title: "FOUNDER / HUMAN BOARD"
+  interface: "NOE COMMAND (input) → NOE REPORT (output)"
+
+executive:
+  - name: "NOE COMMAND"
+    role: "Work intake, delegation, results acceptance"
+    status: "bootstrap"
+
+  - name: "NOE REPORT"
+    role: "Routine result channel, push notifications"
+    status: "bootstrap"
+
+  - name: "WorkforceArchitect"
+    role: "Dynamic agent instantiation, lazy loading of divisions/teams"
+    status: "bootstrap"
+
+departments:
+  - name: "USER"
+    divisions:
+      - "Product & Journey"
+      - "Experience & Accessibility"
+      - "Community & Support"
+
+  - name: "TECHNOLOGY"
+    divisions:
+      - "Application Engineering"
+      - "Game Engineering"
+      - "Platform Engineering"
+      - "Security & Identity"
+
+  - name: "GAME & ECONOMY"
+    divisions:
+      - "Game Design"
+      - "Progression & Economy"
+      - "World Systems & Live Ops"
+
+  - name: "CREATIVE"
+    divisions:
+      - "Brand & Visual"
+      - "3D Art"
+      - "Audio"
+      - "Narrative & Content"
+
+  - name: "MARKETING"
+    divisions:
+      - "Brand Communications"
+      - "Growth"
+
+  - name: "BUSINESS & FINANCE"
+    divisions:
+      - "Strategy & Monetization"
+      - "Finance & Funding"
+
+  - name: "LEGAL & COMPLIANCE"
+    divisions:
+      - "IP & Licensing"
+      - "Privacy & Commercial"
+
+  - name: "QUALITY & RELEASE"
+    divisions:
+      - "QA & Verification"
+      - "Release & Change"
+      - "Knowledge & Canon"
+
+  - name: "LABS & RESEARCH"
+    divisions:
+      - "Agent & Automation R&D"
+      - "Product & Technology Research"
+
+reporting:
+  chain: "Specialist → Team Leader → Division Lead → Department Board → NOE COMMAND → NOE REPORT → Founder"
+  notifications: "DONE | DECISION | RISK | RELEASE"
+
+secrets:
+  - "OPENROUTER_API_KEY"  # AI model access (Paperclip secret)
+  - "GITHUB_CREDENTIAL"   # Repository operations
+  - "CLOUDFLARE_CREDENTIAL" # DNS / edge / CDN
+  - "NTFY_CREDENTIAL"      # Mobile push notifications
+
+mobile:
+  input: "Paperclip Agent Chat (mobile browser)"
+  output: "ntfy push → https://notify.noedis.org"
+  voice: "Phone dictation (native)"
+
+vps:
+  workspaces: "/srv/noedis/workspaces/"
+  artifacts: "/srv/noedis/artifacts/"
+  company: "/srv/noedis/company/"
+  backups: "/srv/noedis/backups/"
+  ssh_port: 501
