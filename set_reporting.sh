@@ -3,7 +3,7 @@
 set -e
 
 COMPANY_ID="8b5aa752-5199-4f51-9a9c-817647ef1aae"
-BOARD_KEY="REDACTED"
+BOARD_KEY="${PAPERCLIP_API_KEY:?set PAPERCLIP_API_KEY}"
 
 echo "=== UPDATE NOE REPORT ==="
 curl -s -X PATCH "http://127.0.0.1:3100/api/companies/$COMPANY_ID/agents/63d3dbf5-3cb1-44f0-8285-543c07f5a5aa" \

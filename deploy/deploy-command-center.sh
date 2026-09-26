@@ -13,12 +13,19 @@
 # ══════════════════════════════════════════════════════════════
 set -euo pipefail
 
+# Credentials come from deploy/.vps.env (git-ignored) or the environment.
+# They are NEVER defaulted here — this file is committed.
+VPS_ENV="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.vps.env"
+if [[ -f "$VPS_ENV" ]]; then
+  set -a; . "$VPS_ENV"; set +a
+fi
+
 VPS_HOST="${VPS_HOST:-76.13.154.124}"
 VPS_PORT="${VPS_PORT:-501}"
 VPS_USER="${VPS_USER:-vpsadmin}"
-VPS_PASS="${VPS_PASS:-REDACTED}"
+VPS_PASS="${VPS_PASS:?set VPS_PASS in deploy/.vps.env or the environment}"
 COMPANY_ID="${NOEDIS_COMPANY_ID:-8b5aa752-5199-4f51-9a9c-817647ef1aae}"
-API_KEY="${PAPERCLIP_API_KEY:-REDACTED}"
+API_KEY="${PAPERCLIP_API_KEY:?set PAPERCLIP_API_KEY in deploy/.vps.env or the environment}"
 REMOTE_DIR="/srv/noedis/command-center"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
