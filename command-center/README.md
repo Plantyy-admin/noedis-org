@@ -1,193 +1,95 @@
-# NOEDIS Command Center v0.3.0
+# NOEDIS Command Center v0.4.0
 
-**PAPERCLIP · GAMEPLAY · DASHBOARD**
+**STRUCTURE · CHAT · PAPERCLIP · GAMEPLAY · DASHBOARD · INBOX**
 
-Autonomous agent company command center for the NOEDIS ecosystem. Three views in one interface — Paperclip orchestration, pixel-art station gameplay, and real-time dashboard.
+The cockpit for the NOEDIS Autonomous Company. It reads the canonical MASTER org
+blueprint, merges it with the live Paperclip org, and presents the whole company —
+organisation and units — in one interface.
+
+- **Live:** <https://noedis.org/command/>
+- **Full documentation:** [`docs/COMMAND-CENTER.md`](../docs/COMMAND-CENTER.md)
 
 ---
 
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  NOEDIS Command Center (port 3200)                          │
-│  ┌─────────────┐  ┌─────────────┐  ┌───────────────┐      │
-│  │  PAPERCLIP  │  │  GAMEPLAY   │  │  DASHBOARD    │      │
-│  │  (iframe)   │  │  (canvas)   │  │  (metrics)    │      │
-│  └──────┬──────┘  └──────┬──────┘  └───────┬───────┘      │
-│         │                │                 │              │
-│         └────────────────┼─────────────────┘              │
-│                          │                                │
-│                  ┌───────┴────────┐                       │
-│                  │  Node.js Server │                       │
-│                  │  API Proxy + WS │                       │
-│                  └───────┬────────┘                       │
-│                          │                                │
-│                  ┌───────┴────────┐                       │
-│                  │  Paperclip API  │                       │
-│                  │  127.0.0.1:3100 │                       │
-│                  └────────────────┘                       │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Quick Start
+## Quick start
 
 ```bash
-cd /var/home/plantyy/Projects/noedis-org/command-center
-
-# Install dependencies
 npm install
-
-# Start manually
-node server.js
-
-# Or use the start script
-./start.sh
+cp .env.example .env      # then set PAPERCLIP_API_KEY
+npm start                 # http://127.0.0.1:3200
 ```
 
-**Open:** `http://127.0.0.1:3200`
-
-## Views
-
-### PAPERCLIP
-Direct iframe integration with the Paperclip orchestration UI. Full access to:
-- Company management
-- Agent recruitment and management
-- Issue tracking
-- Approval workflows
-- Everything Paperclip offers
-
-### GAMEPLAY
-StarNet-inspired pixel-art space station visualization:
-- **Station Map**: Top-down pixel station with department rooms (USER, TECHNOLOGY, GAME & ECONOMY, CREATIVE, etc.)
-- **Corridors with data pulses**: Animated data packets flowing when agents are active
-- **CREW Rail**: Real-time agent list with status badges
-- **Agent Dots**: Pulsing dots on the map showing agent positions and activity
-- **HUD**: Station status indicator
-
-### DASHBOARD
-Real-time command center with:
-- Agent metrics (active, running, paused, error)
-- Task tracking (open, in progress, blocked, done)
-- Cost monitoring (spend, budget, utilization)
-- Pending items (approvals, incidents)
-- Company info (status, prefix, created)
-- Agent roster table
-- Organization chart (full NOEDIS hierarchy from MASTER v0.3.0)
-
-## Real-time Updates
-
-- WebSocket connection for instant dashboard updates
-- 4-second polling fallback for dashboard metrics
-- 8-second polling for agent list
-- Automatic reconnection with 3-second delay
-- Uplink status indicator in top navigation bar
-
-## NOEDIS Company Structure
-
-Pre-configured company: **Noedis** (ID: `66147035-...`)
-Issue prefix: `NOE`
-
-### Executive Board
-- **NOE COMMAND** — Work intake and delegation
-- **NOE REPORT** — Results channel and push notifications
-- **WorkforceArchitect** — Dynamic agent instantiation
-
-### Departments
-| Department | Divisions |
-|---|---|
-| USER | Product & Journey, Experience & Accessibility, Community & Support |
-| TECHNOLOGY | Application Engineering, Game Engineering, Platform Engineering, Security & Identity |
-| GAME & ECONOMY | Game Design, Progression & Economy, World Systems & Live Ops |
-| CREATIVE | Brand & Visual, 3D Art, Audio, Narrative & Content |
-| MARKETING | Brand Communications, Growth |
-| BUSINESS & FINANCE | Strategy & Monetization, Finance & Funding |
-| LEGAL & COMPLIANCE | IP & Licensing, Privacy & Commercial |
-| QUALITY & RELEASE | QA & Verification, Release & Change, Knowledge & Canon |
-| LABS & RESEARCH | Agent & Automation R&D, Product & Technology Research |
-
-### Reporting Chain
-```
-Specialist → Team Leader → Division Lead → Department Board → NOE COMMAND → NOE REPORT → Founder
-```
-
-Notifications: **DONE** | **DECISION** | **RISK** | **RELEASE**
-
-## Runtime Invariant
-
-All NOEDIS AI agents use:
-```
-Paperclip → pi_local → Pi coding agent → OpenRouter
-```
-
-- **OpenRouter** is the single AI provider gateway
-- **Pi** is the only agent runtime
-- No Codex CLI, Claude Code, or OpenCode for NOEDIS orchestration
-
-## System Service
-
-To run as a persistent systemd user service:
+Against the live VPS Paperclip, tunnel first:
 
 ```bash
-# Copy the service file
-cp /var/home/plantyy/Projects/noedis-org/command-center/noedis-command-center.service ~/.config/systemd/user/
-
-# Enable and start
-systemctl --user daemon-reload
-systemctl --user enable noedis-command-center
-systemctl --user start noedis-command-center
-
-# Check status
-systemctl --user status noedis-command-center
-
-# View logs
-journalctl --user -u noedis-command-center -f
+ssh -N -L 127.0.0.1:13100:127.0.0.1:3100 -p 501 vpsadmin@76.13.154.124 &
+# .env -> PAPERCLIP_URL=http://127.0.0.1:13100
 ```
 
-## VPS Workspace Structure
+Verify a running instance in a real browser (21 assertions + screenshots):
 
+```bash
+npm test -- https://noedis.org/command/
 ```
-/srv/noedis/
-├── workspaces/    # Agent workspaces (isolated per agent)
-├── artifacts/     # Completed work output
-├── company/       # Company configuration
-└── backups/       # Backup storage
-```
-
-## Configuration
-
-Environment variables (or edit `server.js`):
-
-| Variable | Default | Description |
-|---|---|---|
-| `NOEDIS_PORT` | `3200` | Command center HTTP port |
-| `PAPERCLIP_URL` | `http://127.0.0.1:3100` | Paperclip server URL |
-| `NOEDIS_COMPANY_ID` | `66147035-...` | Paperclip company UUID |
-
-## Credentials Needed
-
-| Credential | Purpose |
-|---|---|
-| `OPENROUTER_API_KEY` | AI model access for Pi agents |
-| GitHub PAT | Repository operations |
-| Cloudflare API Token | DNS / edge / CDN |
-| ntfy credentials | Mobile push notifications |
-
-## Deployment Status
-
-- [x] Paperclip running on `http://127.0.0.1:3100`
-- [x] Pi coding agent installed (v0.85.1)
-- [x] NOEDIS company created in Paperclip
-- [x] VPS workspace structure created
-- [x] Command Center built (PAPERCLIP | GAMEPLAY | DASHBOARD)
-- [x] WebSocket real-time updates
-- [x] Dashboard with agent/task/cost metrics
-- [x] Pixel-art station visualization
-- [ ] OpenRouter API key configuration (needs your input)
-- [ ] GitHub credential setup
-- [ ] Cloudflare + noedis.org DNS
-- [ ] ntfy push notifications
 
 ---
 
-*Generated from NOEDIS Autonomous Company OS — MASTER v0.3.0*
+## The STRUCTURE panel
+
+The first tab, and the point of the cockpit. It renders two blocks:
+
+1. **ORG — vedení společnosti** — `FOUNDER → NOE COMMAND → CODY / RENE /
+   WorkforceArchitect → 9 Department Boards`, with live status per node.
+2. **JEDNOTKY SPOLEČNOSTI** — `Department → Division → Team → Agent`, expandable and
+   searchable. All 49 teams are listed; the 29 that are not staffed yet are marked
+   `lazy — neinstantováno`, because MASTER §4 says divisions and teams are installed
+   on demand by `WorkforceArchitect` rather than created up front.
+
+Shape comes from `config/org-blueprint.json`; reality (which agents exist, their
+status, their unit) comes from Paperclip. Anything Paperclip has that the blueprint
+does not know about is shown under **NEPŘIŘAZENO** instead of being hidden.
+
+---
+
+## Layout
+
+```
+command-center/
+├── server.js              Express app — the only holder of the Paperclip key
+├── lib/
+│   ├── config.js          env-driven configuration + blueprint loader
+│   └── paperclip.js       authenticated Paperclip API client
+├── config/
+│   ├── org-blueprint.json canonical MASTER org + model policy
+│   └── org-blueprint.yaml generated readable mirror
+├── public/
+│   ├── index.html         shell + top navigation
+│   ├── css/style.css
+│   └── js/
+│       ├── app.js         bootstrap, navigation, live wiring
+│       ├── api.js         fetch wrappers + WebSocket
+│       ├── store.js       blueprint × Paperclip merge
+│       ├── structure.js   STRUCTURE panel
+│       ├── dashboard.js   DASHBOARD panel
+│       ├── inbox.js       INBOX panel
+│       ├── chat.js        CHAT (work intake)
+│       ├── gameplay.js    GAMEPLAY canvas
+│       └── util.js
+└── test/smoke.mjs         Playwright smoke test
+```
+
+The board API key never reaches the browser: all Paperclip access is proxied through
+`/noedis/api/*` on the server.
+
+---
+
+## Company model policy
+
+```json
+"runtime": { "model": "openrouter/~deepseek/deepseek-flash-latest" }
+```
+
+One value, applied to every agent by the reconciler. The previous pin
+(`deepseek/deepseek-v4.1-flash`) does not exist in pi 0.87.1 and made every run fail
+with `adapter_failed`; see [`docs/COMMAND-CENTER.md` §5](../docs/COMMAND-CENTER.md)
+for the full story and how to change it.
