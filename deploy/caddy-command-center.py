@@ -22,6 +22,7 @@ deployments are stripped too.
 Usage:  sudo python3 caddy-command-center.py /etc/caddy/Caddyfile
 """
 
+import os
 import re
 import sys
 
@@ -33,6 +34,34 @@ CC_END = "\t# <<< NOEDIS Command Center (managed) <<<"
 PC_START = "# >>> NOEDIS Paperclip host (managed) >>>"
 PC_END = "# <<< NOEDIS Paperclip host (managed) <<<"
 
+# The cockpit holds the board API key and can create work that spends money, so
+# it is published behind HTTP basic auth. The plaintext password is never stored
+# here — only a bcrypt hash, generated with `caddy hash-password --plaintext`.
+# Both come from the environment (deploy/.vps.env, git-ignored); when unset the
+# cockpit is published unprotected, which is only appropriate on a private host.
+AUTH_USER = os.environ.get("NOEDIS_AUTH_USER", "").strip()
+AUTH_HASH = os.environ.get("NOEDIS_AUTH_HASH", "").strip()
+AUTH_REQUIRED = os.environ.get("NOEDIS_AUTH_REQUIRED", "").strip().lower() in ("1", "true", "yes")
+
+if AUTH_REQUIRED and not (AUTH_USER and AUTH_HASH):
+    sys.exit(
+        "ERROR: NOEDIS_AUTH_REQUIRED is set but NOEDIS_AUTH_USER / NOEDIS_AUTH_HASH are missing."
+    )
+
+
+def auth_directive(indent: str) -> str:
+    """`basic_auth { ... }` for the cockpit routes, or "" when unconfigured."""
+    if not (AUTH_USER and AUTH_HASH):
+        return ""
+    i1 = indent + "\t"
+    i2 = indent + "\t\t"
+    return (
+        f"{indent}basic_auth {{\n"
+        f"{i1}{AUTH_USER} {AUTH_HASH}\n"
+        f"{indent}}}\n"
+    )
+
+
 COCKPIT_ROUTES = f"""{CC_START}
 \t# The cockpit owns the root. Paperclip moved to www.noedis.org.
 \t# A named matcher + bare redir runs before the mutually exclusive handle set.
@@ -40,7 +69,7 @@ COCKPIT_ROUTES = f"""{CC_START}
 \tredir @noedis_cc_old / 308
 
 \thandle /noedis/* {{
-\t\treverse_proxy {COCKPIT}
+{auth_directive("\t\t")}\t\treverse_proxy {COCKPIT}
 \t}}
 {CC_END}
 """
@@ -155,7 +184,12 @@ def main() -> int:
     if not span:
         sys.exit("ERROR: no root `handle {` catch-all inside the noedis.org block")
     a, b = span
-    root_route = f"\thandle {{\n\t\treverse_proxy {COCKPIT}\n\t}}"
+    root_route = (
+        "\thandle {\n"
+        f"{auth_directive(chr(9) * 2)}"
+        f"\t\treverse_proxy {COCKPIT}\n"
+        "\t}"
+    )
     block = block[:a] + root_route + block[b:]
     src = src[:start] + block + src[end:]
     print(f"Caddy: root catch-all -> {COCKPIT}")
@@ -179,6 +213,10 @@ def main() -> int:
     print(f"Caddy: cockpit region {'replaced' if had_cc else 'inserted'} (root + /noedis/*)")
     print(f"Caddy: root catch-all -> {COCKPIT}")
     print(f"Caddy: Paperclip block {'replaced' if had_pc else 'appended'} (www.noedis.org)")
+    if AUTH_USER and AUTH_HASH:
+        print(f"Caddy: cockpit protected with basic_auth (user: {AUTH_USER})")
+    else:
+        print("Caddy: WARNING — cockpit published WITHOUT authentication")
     return 0
 
 

@@ -16,6 +16,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE = process.argv[2] || 'http://127.0.0.1:3200';
 const OUT = path.join(__dirname, 'out');
 
+/* The production cockpit is published behind HTTP basic auth. Supply the
+   credentials via NOEDIS_AUTH_USER / NOEDIS_AUTH_PASS so both the browser and
+   the direct fetches below can reach it. Leave unset for a local, open run. */
+const AUTH_USER = process.env.NOEDIS_AUTH_USER || '';
+const AUTH_PASS = process.env.NOEDIS_AUTH_PASS || '';
+const AUTH_HEADER = AUTH_USER
+  ? { Authorization: `Basic ${Buffer.from(`${AUTH_USER}:${AUTH_PASS}`).toString('base64')}` }
+  : {};
+
 const results = [];
 function check(name, ok, detail = '') {
   results.push({ name, ok, detail });
@@ -25,7 +34,10 @@ function check(name, ok, detail = '') {
 fs.mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+const page = await browser.newPage({
+  viewport: { width: 1600, height: 1000 },
+  ...(AUTH_USER ? { httpCredentials: { username: AUTH_USER, password: AUTH_PASS } } : {}),
+});
 
 const consoleErrors = [];      // errors originating in the cockpit itself
 const embeddedErrors = [];     // errors from the embedded Paperclip UI
@@ -125,7 +137,7 @@ check('GAMEPLAY rail shows the 10 floors in order',
 /* ── 4b. PAPERCLIP tab must actually embed the native UI ─────── */
 await page.click('.nav-tab[data-view="paperclip"]');
 await page.waitForTimeout(4000);
-const clientCfg = await (await fetch(`${BASE}/noedis/config`)).json();
+const clientCfg = await (await fetch(`${BASE}/noedis/config`, { headers: AUTH_HEADER })).json();
 const uiHost = new URL(clientCfg.paperclipUiUrl).host;
 const pcFrame = page.frames().find((f) => {
   const u = f.url();
