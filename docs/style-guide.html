@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8" />
+<title>NOEDIS — Style Guide</title>
+<style>
+@font-face { font-family: "Montserrat NOEDIS"; src: url("../public/fonts/Montserrat-Black.otf") format("opentype"); font-weight: 900; font-display: block; }
+@font-face { font-family: "Montserrat NOEDIS"; src: url("../public/fonts/Montserrat-ExtraBold.otf") format("opentype"); font-weight: 800; font-display: block; }
+@page { size: A4; margin: 15mm 14mm 16mm; }
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body {
+  margin: 0; background: #060d1e; color: #dbe6f5;
+  font: 400 9.6pt/1.62 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+.doc { max-width: 190mm; margin: 0 auto; padding: 0 0 10mm; }
+
+h1 { font: 900 30pt/1.05 "Montserrat NOEDIS", "Arial Black", sans-serif; color: #fff; margin: 0 0 4mm; letter-spacing: -.01em; }
+h2 {
+  font: 900 19pt/1.1 "Montserrat NOEDIS", "Arial Black", sans-serif; color: #fff;
+  margin: 11mm 0 3.5mm; padding-bottom: 2mm;
+  border-bottom: 1px solid #ffffff1f; break-after: avoid; break-inside: avoid;
+}
+h2::before { content: ""; display: inline-block; width: 3mm; height: 3mm; margin-right: 3mm;
+  border-radius: 1mm; background: linear-gradient(115deg, #507cff, #35c9ed); vertical-align: .12em; }
+h3 { font: 800 12.4pt/1.25 "Montserrat NOEDIS", system-ui; color: #f4f8ff; margin: 7mm 0 2.5mm; break-after: avoid; }
+h4 { font: 700 10.6pt/1.3 system-ui; color: #cfe0f5; margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 3mm; }
+a { color: #65e5f5; text-decoration: none; }
+strong { color: #fff; font-weight: 700; }
+em { color: #c3d3e8; }
+hr { border: 0; border-top: 1px solid #ffffff14; margin: 7mm 0; }
+
+/* code */
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 8.1pt;
+  color: #ffe6a8; background: #ffffff0f; border-radius: 1mm; padding: .4mm 1.1mm; }
+pre.code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 7.5pt; line-height: 1.5;
+  color: #d7e6fa; background: #08111f; border: 1px solid #ffffff14; border-left: 2px solid #65e5f5;
+  border-radius: 1.6mm; padding: 3mm 3.4mm; margin: 0 0 3.5mm;
+  white-space: pre-wrap; word-break: break-word; break-inside: avoid; }
+pre.code.lang-ts { border-left-color: #4aa8ff; }
+
+/* colour chip — the whole point of a style guide */
+code.sw { position: relative; padding-left: 5.4mm; }
+code.sw::before { content: ""; position: absolute; left: 1.1mm; top: 50%; transform: translateY(-50%);
+  width: 3mm; height: 3mm; border-radius: .8mm; background: var(--sw);
+  border: 1px solid #ffffff40; box-shadow: 0 0 2mm #0006; }
+
+/* tables */
+table { width: 100%; border-collapse: collapse; margin: 0 0 4mm; font-size: 8.6pt; break-inside: auto; }
+thead { display: table-header-group; }
+th { text-align: left; font-size: 7.4pt; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: #8fa6c4; border-bottom: 1px solid #ffffff2e; padding: 0 2.4mm 1.6mm 0; }
+td { padding: 1.7mm 2.4mm 1.7mm 0; border-bottom: 1px solid #ffffff10; vertical-align: top; }
+tr { break-inside: avoid; }
+td code, th code { background: none; padding: 0; color: #ffe6a8; }
+
+/* quotes and lists */
+blockquote { margin: 0 0 4mm; padding: 2.8mm 3.4mm; border-left: 2px solid #ff8737;
+  background: linear-gradient(90deg, #ff873718, transparent 70%); border-radius: 0 1.6mm 1.6mm 0; break-inside: avoid; }
+blockquote p:last-child { margin-bottom: 0; }
+ul, ol { margin: 0 0 4mm; padding-left: 5.4mm; }
+ul { list-style: none; }
+ul > li::before { content: ""; display: inline-block; width: 1.4mm; height: 1.4mm; margin: 0 2.4mm 0 -4.4mm;
+  border-radius: 50%; background: #65e5f5; vertical-align: .18em; }
+ol { list-style: decimal; }
+ol > li::marker { color: #65e5f5; font-weight: 700; }
+li { margin-bottom: 1.4mm; }
+li.task { list-style: none; margin-left: -5.4mm; display: flex; gap: 2.4mm; align-items: baseline; }
+li.task::before { content: none; }
+li.task .box { flex: none; width: 3.2mm; height: 3.2mm; margin-top: .7mm; border: 1px solid #65e5f5;
+  border-radius: .8mm; background: #65e5f51a; }
+
+/* cover */
+.cover { break-after: page; padding-top: 42mm; }
+.cover .eyebrow { font: 700 8.4pt/1 system-ui; letter-spacing: .3em; color: #65e5f5; text-transform: uppercase; }
+.cover h1 { font-size: 40pt; margin: 5mm 0 4mm; }
+.cover .lead { font-size: 11.4pt; line-height: 1.6; color: #b9cbe2; max-width: 132mm; }
+.cover .meta { margin-top: 14mm; padding-top: 4mm; border-top: 1px solid #ffffff1f;
+  font-size: 8.4pt; color: #8fa6c4; display: flex; justify-content: space-between; }
+.cover .screens { display: flex; gap: 3mm; margin-top: 9mm; flex-wrap: wrap; }
+.cover .screens span { font: 700 8pt/1 system-ui; letter-spacing: .1em; text-transform: uppercase;
+  padding: 2.2mm 3.4mm; border-radius: 99px; border: 1px solid #ffffff26; background: #ffffff0a; color: #dfeaf8; }
+.cover .screens span:nth-child(1) { border-color: #507cff88; box-shadow: inset 0 0 6mm #507cff2e; }
+.cover .screens span:nth-child(2) { border-color: #65e5f588; box-shadow: inset 0 0 6mm #65e5f52e; }
+.cover .screens span:nth-child(3) { border-color: #ffd23f88; box-shadow: inset 0 0 6mm #ffd23f2e; }
+</style></head>
+<body><div class="doc">
+<section class="cover">
+  <div class="eyebrow">NOEDIS.IO · vizuální jazyk</div>
+  <h1>Style Guide</h1>
+  <p class="lead">Barvy, gradienty, tlačítka, tvary a pohyb NOEDIS — převzato přímo z běžící aplikace, ne z dokumentace.</p>
+  <div class="screens"><span>Welcome</span><span>Citadel</span><span>Convert</span></div>
+  <div class="meta"><span>Zdroj: STYLE-GUIDE.md</span><span>2026-09-24</span></div>
+</section>
+
+<p>Vizuální jazyk NOEDIS.IO na jednom místě: barvy, gradienty, tlačítka, tvary a pohyb.</p>
+<p>Příručka je psaná primárně pro tři propojené obrazovky, na kterých stojí celý první dojem produktu:</p>
+<table><thead><tr><th>#</th><th>Obrazovka</th><th>Zdroj</th><th>Dominantní barva</th></tr></thead><tbody><tr><td>1</td><td><strong>Welcome</strong> — kosmický vstup</td><td><code>src/Welcome.tsx</code></td><td>modro-fialová gateway</td></tr><tr><td>2</td><td><strong>Citadel</strong> — kolo portálů a atlas</td><td><code>src/CitadelWheel.tsx</code>, <code>src/CitadelScene.tsx</code>, <code>src/PortalMap.tsx</code></td><td>cyan + tři zónové barvy</td></tr><tr><td>3</td><td><strong>Convert</strong> — šest převodů hodnot</td><td><code>src/Space.tsx</code> (sekce <code>.economy-section</code>)</td><td>jedna barva na kartu</td></tr></tbody></table>
+<hr />
+<h2 id="0-jak-tuto-příručku-číst">0. Jak tuto příručku číst</h2>
+<p><strong>Zdroje pravdy</strong> (v tomto pořadí):</p>
+<ol><li><code>src/index.css</code> — kanonické tokeny (<code>:root</code>) a veškerá Welcome + Convert logika.</li><li><code>src/CitadelWheel.css</code> — kolo, brána, pilulky, kompas.</li><li><code>src/DashboardControl.css</code> — tmavý „command deck" a karetní jazyk Convertu (<code>--nd-*</code>).</li><li><code>docs/design-system.html</code> — vygenerované vzorky z běžící aplikace.</li><li><code>docs/noedis-screen-styles.md</code> — krátký handoff pro stejné tři obrazovky.</li></ol>
+<p><strong>Důležité upozornění k tokenům.</strong> Blok <code>--noedis-*</code> je v <code>src/index.css:13–38</code> deklarovaný jako kanonická paleta, ale <strong>v kódu ho zatím nic nečte</strong> (0 použití <code>var(--noedis-…)</code>). Skutečné hodnoty jsou v pravidlech zapsané natvrdo. Ber proto tabulky níže jako <strong>popis stavu</strong> a <code>--noedis-*</code> jako <strong>cílový stav</strong> — při refaktoru se mají literály nahradit tokeny, ne tokeny přepsat na literály.</p>
+<p>Naopak <code>--nd-*</code> (v <code>.noedis-dashboard</code>) je živý systém: <code>var(--nd-cyan)</code> se v <code>DashboardControl.css</code> používá 54×, <code>--nd-card</code> 15×. Tam tokeny používej vždy.</p>
+<hr />
+<h2 id="1-základy-značky">1. Základy značky</h2>
+<h3 id="1-1-logo-a-značka">1.1 Logo a značka</h3>
+<table><thead><tr><th>Prvek</th><th>Soubor</th><th>Použití</th></tr></thead><tbody><tr><td>Labuť</td><td><code>public/noedis-swan-icon.png</code></td><td>ikona značky, PWA ikona, Welcome i auth karta</td></tr><tr><td>Wordmark</td><td><code>public/noedis-silver.png</code></td><td>hlavička Welcome (<code>Welcome.tsx:73</code>)</td></tr><tr><td>Motto</td><td><code>PLANT IDEAS</code> (text) + <code>YOU BELIEVE IN</code> (<code>public/you-believe-in-floral.png</code>)</td><td><code>#welcome-motto</code></td></tr></tbody></table>
+<p>Wordmark barva na tmavé je <code>--nd-silver: #c8d6ea</code>.</p>
+<blockquote><p><strong>Nepoužívané assety.</strong> <code>public/noedis-wordmark.png</code>, <code>public/noedis-swan.png</code>, <code>public/citadel-day.png</code> a <code>public/citadel-night.png</code> nejsou v <code>src/</code> ani <code>index.html</code> referencované ani jednou (0 výskytů). Před jejich použitím ověř, že nejde o pozůstatek staršího designu.</p></blockquote>
+<h3 id="1-2-písmo">1.2 Písmo</h3>
+<p>Dvě rodiny, žádná třetí.</p>
+<p><strong>Display — <code>Montserrat NOEDIS</code></strong> (lokální OTF, <code>public/fonts/</code>), fallback <code>"Arial Black", sans-serif</code>:</p>
+<pre class="code lang-css">@font-face { font-family: "Montserrat NOEDIS"; src: url("/fonts/Montserrat-Black.otf") format("opentype");      font-weight: 900; font-display: swap; }
+@font-face { font-family: "Montserrat NOEDIS"; src: url("/fonts/Montserrat-ExtraBold.otf") format("opentype"); font-weight: 800; font-display: swap; }</pre>
+<p>Použití: nadpisy (<code>h1</code>), motto, číselné údaje, názvy karet převodů.</p>
+<p><strong>UI — systémový sans</strong>, nikdy se nenačítá:</p>
+<pre class="code lang-css">font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;</pre>
+<p>Použití: vše ostatní — labely, tlačítka, tabulky, monospace metadata (<code>ui-monospace</code>).</p>
+<p><strong>Mikro-typografie rozhraní.</strong> NOEDIS má výrazný rys: <em>široce prostrkané verzállky</em>. Drž se vzorce <code>font-weight: 850–950</code>, <code>letter-spacing: .12–.4em</code>, <code>text-transform: uppercase</code>, <code>font-size: 6–11px</code> pro labely a eyebrow texty.</p>
+<h3 id="1-3-tón-a-principy">1.3 Tón a principy</h3>
+<ol><li><strong>Barva vždycky něco znamená.</strong> Nikdy není dekorace. Zóna určuje prstenec, převod svou kartu, stav mění jen jas a krytí.</li><li><strong>Jeden dominantní akcent na komponentu.</strong> Druhá nasycená barva patří pouze stavu nebo akci.</li><li><strong>Sklo místo plochy.</strong> Světlé vrstvy <code>#ffffff04–#ffffff20</code> přes noční podklad.</li><li><strong>Pohyb odpovídá na akci.</strong> Nic se nehýbe samo; vždy existuje <code>prefers-reduced-motion</code> větev.</li><li><strong>Text na tmavé je vždy světlý.</strong> Tlumená barva nikdy nenese jediný label akce.</li></ol>
+<hr />
+<h2 id="2-barvy">2. Barvy</h2>
+<h3 id="2-1-noční-plochy">2.1 Noční plochy</h3>
+<p><strong>Pozor:</strong> deklarované <code>--noedis-*</code> hodnoty se <strong>neshodují</strong> s literály, které jsou skutečně v pravidlech. Proto jsou v tabulce obě čísla vedle sebe.</p>
+<table><thead><tr><th>Role</th><th>Token</th><th>Deklarováno v tokenu</th><th>Skutečně použito</th><th>Kde</th></tr></thead><tbody><tr><td>Welcome podklad</td><td><code>--noedis-night</code></td><td><code class="sw" style="--sw:#060d1e">#060d1e</code></td><td><strong><code class="sw" style="--sw:#060d29">#060d29</code></strong></td><td><code>.welcome-screen</code> (<code>index.css:2466</code>)</td></tr><tr><td>Citadel scéna</td><td><code>--noedis-citadel</code></td><td><code class="sw" style="--sw:#17113d">#17113d</code></td><td><strong><code class="sw" style="--sw:#050a25">#050a25</code></strong></td><td><code>.citadel-scene</code> (<code>index.css:2394</code>)</td></tr><tr><td>Launcher pod tmavým režimem</td><td>—</td><td>—</td><td><code class="sw" style="--sw:#17283f">#17283f</code></td><td><code>html .launcher-scene</code> (<code>index.css:1094</code>)</td></tr><tr><td>Theme color / indigo noc</td><td><code>--noedis-citadel</code></td><td><code class="sw" style="--sw:#17113d">#17113d</code></td><td><code class="sw" style="--sw:#17113d">#17113d</code></td><td><code>index.html</code>, <code>site.webmanifest</code></td></tr><tr><td>Skleněný panel</td><td><code>--noedis-glass</code></td><td><code class="sw" style="--sw:#0b1730">#0b1730</code></td><td><code class="sw" style="--sw:#0b1730">#0b1730</code></td><td>karty, lišty, overlaye</td></tr><tr><td>Dashboard void</td><td><code>--nd-void</code></td><td><code class="sw" style="--sw:#03060f">#03060f</code></td><td><code class="sw" style="--sw:#03060f">#03060f</code></td><td>nejhlubší vrstva decku</td></tr><tr><td>Dashboard abyss</td><td><code>--nd-abyss</code></td><td><code class="sw" style="--sw:#050b18">#050b18</code></td><td><code class="sw" style="--sw:#050b18">#050b18</code></td><td>základ <code>.noedis-dashboard</code></td></tr><tr><td>Dashboard deep</td><td><code>--nd-deep</code></td><td><code class="sw" style="--sw:#071026">#071026</code></td><td><code class="sw" style="--sw:#071026">#071026</code></td><td>sekce</td></tr><tr><td>Dashboard panel</td><td><code>--nd-panel</code></td><td><code class="sw" style="--sw:#0a1225">#0a1225</code></td><td><code class="sw" style="--sw:#0a1225">#0a1225</code></td><td>panely</td></tr><tr><td>Dashboard panel 2</td><td><code>--nd-panel-2</code></td><td><code class="sw" style="--sw:#0d1a31">#0d1a31</code></td><td><code class="sw" style="--sw:#0d1a31">#0d1a31</code></td><td>druhá hladina</td></tr><tr><td>Dashboard inset</td><td><code>--nd-inset</code></td><td><code class="sw" style="--sw:#060c1a">#060c1a</code></td><td><code class="sw" style="--sw:#060c1a">#060c1a</code></td><td>vnořené plochy, inputy</td></tr><tr><td>Karta převodu (tmavá)</td><td>—</td><td>—</td><td><code class="sw" style="--sw:#0c1227">#0c1227</code> → <code class="sw" style="--sw:#080d20">#080d20</code></td><td>viz §5.3</td></tr></tbody></table>
+<p><code>--nd-*</code> tokeny sedí na svých hodnotách — tam je <code>var()</code> skutečně zapojené (viz §0). U <code>--noedis-*</code> je token jen dokumentace zamýšlené palety.</p>
+<h3 id="2-2-text">2.2 Text</h3>
+<table><thead><tr><th>Role</th><th>Token</th><th>Hex</th><th>Kde</th></tr></thead><tbody><tr><td>Hlavní text (token)</td><td><code>--noedis-text</code></td><td><code class="sw" style="--sw:#f2f0fa">#f2f0fa</code></td><td>nadpisy, primární labely</td></tr><tr><td>Hlavní text (reálný)</td><td><code>--nd-ink</code></td><td><code class="sw" style="--sw:#eef5ff">#eef5ff</code></td><td>dashboard</td></tr><tr><td>Text na tmavé (citadel)</td><td>—</td><td><code class="sw" style="--sw:#edf3ff">#edf3ff</code></td><td><code>.citadel-wheel</code></td></tr><tr><td>Text na světlé</td><td>—</td><td><code class="sw" style="--sw:#333547">#333547</code></td><td><code>body</code>, light režim</td></tr><tr><td>Tlumený text</td><td><code>--noedis-text-muted</code></td><td><code class="sw" style="--sw:#8792a9">#8792a9</code></td><td>popisy, metadata</td></tr><tr><td>Tlumený (dashboard)</td><td><code>--nd-ink-dim</code></td><td><code class="sw" style="--sw:#a9bad6">#a9bad6</code></td><td>sekundární text</td></tr><tr><td>Tlumený (dashboard 2)</td><td><code>--nd-ink-mute</code></td><td><code class="sw" style="--sw:#8b9dba">#8b9dba</code></td><td>tercirní text</td></tr><tr><td>Nejméně důležitý</td><td><code>--nd-ink-ghost</code></td><td><code class="sw" style="--sw:#43536e">#43536e</code></td><td>vypnuté popisky</td></tr></tbody></table>
+<h3 id="2-3-zónové-barvy-frameworky-systémy-produkty">2.3 Zónové barvy — FRAMEWORKY / SYSTÉMY / PRODUKTY</h3>
+<p>Trojice, která se opakuje na kole, v atlase, v legendě i v dashboardu. <strong>Neměň ji.</strong></p>
+<table><thead><tr><th>Zóna</th><th>Token</th><th>Hex</th><th>Význam</th></tr></thead><tbody><tr><td>FRAMEWORKY</td><td><code>--noedis-framework</code> / <code>--nd-framework</code></td><td><code class="sw" style="--sw:#4aa8ff">#4aa8ff</code></td><td>nástroje, framework cesty, modrá navigace</td></tr><tr><td>SYSTÉMY</td><td><code>--noedis-systems</code> / <code>--nd-system</code></td><td><code class="sw" style="--sw:#b07cff">#b07cff</code></td><td>logika systému, portály, přechody</td></tr><tr><td>PRODUKTY</td><td><code>--noedis-products</code> / <code>--nd-product</code></td><td><code class="sw" style="--sw:#ffd23f">#ffd23f</code></td><td>produkty, odemykání, zvýrazněné cíle</td></tr></tbody></table>
+<p>Na kole je barva nesená jako <code>--zone-color</code> na prstenci a <code>--portal-color</code> na uzlu (<code>CitadelWheel.tsx:904</code>, <code>:956</code>). Z <code>--portal-color</code> se skládá výplň, obrys i stín.</p>
+<blockquote><p><strong>Vzor k zapamatování.</strong> <code>--zone-color</code> a <code>--portal-color</code> <strong>nejsou deklarované v žádném CSS souboru</strong> — nastavuje je výhradně inline <code>style</code> z Reactu. CSS je jen konzumuje přes <code>color-mix()</code>. Když přidáváš nový prvek kola, nikdy tyto proměnné nedefinuj v stylesheetu; převezmi je z kontejneru. Barvy zón samotné jsou v datech (<code>flowtree.json:31–65</code>), ne v CSS.</p></blockquote>
+<h3 id="2-4-signální-barvy">2.4 Signální barvy</h3>
+<table><thead><tr><th>Role</th><th>Token</th><th>Hex</th><th>Význam</th></tr></thead><tbody><tr><td>Live signál</td><td><code>--noedis-cyan</code> / <code>--nd-cyan</code></td><td><code class="sw" style="--sw:#65e5f5">#65e5f5</code> / <code class="sw" style="--sw:#7fe9ff">#7fe9ff</code></td><td>živý stav, focus, systémový signál</td></tr><tr><td>Brána citadely</td><td><code>--noedis-orange</code> / <code>--nd-orange</code></td><td><code class="sw" style="--sw:#e58a32">#e58a32</code> / <code class="sw" style="--sw:#ff8737">#ff8737</code></td><td>vstup, teplý architektonický důraz</td></tr><tr><td>Earned / OK</td><td><code>--noedis-green</code> / <code>--nd-green</code></td><td><code class="sw" style="--sw:#2ab77f">#2ab77f</code> / <code class="sw" style="--sw:#63dda8">#63dda8</code></td><td>vyděláno, odemčeno, zdravé</td></tr><tr><td>Chyba / blok</td><td><code>--noedis-danger</code> / <code>--nd-magenta</code></td><td><code class="sw" style="--sw:#ff6673">#ff6673</code> / <code class="sw" style="--sw:#dd397b">#dd397b</code></td><td>chyba, gatovaný stav, výstraha</td></tr><tr><td>Fialová linka</td><td><code>--hub-color</code></td><td><code class="sw" style="--sw:#6d56ce">#6d56ce</code></td><td>osa kola, druhý akcent (<code>CitadelWheel.css:18</code>)</td></tr></tbody></table>
+<blockquote><p><code>--nd-cyan</code> (<code class="sw" style="--sw:#7fe9ff">#7fe9ff</code>) je záměrně světlejší než <code>--noedis-cyan</code> (<code class="sw" style="--sw:#65e5f5">#65e5f5</code>). Na dashboardu nese víc textu, takže potřebuje vyšší kontrast.</p></blockquote>
+<h3 id="2-5-barvy-šesti-převodů">2.5 Barvy šesti převodů</h3>
+<p>Nejdůležitější pravidlo Convertu: <strong>barva karty = barva tlačítka</strong>. Akce je čitelná i bez labelu. Každá karta si nese <code>--converter</code> a <code>--converter-rgb</code>.</p>
+<table><thead><tr><th>Karta</th><th>Třída</th><th>Token</th><th>Hex</th><th>RGB varianta</th></tr></thead><tbody><tr><td>Totemy → NP</td><td><code>.converter-totem</code></td><td><code>--noedis-convert-totem</code></td><td><code class="sw" style="--sw:#6fdde7">#6fdde7</code></td><td><code>111, 221, 231</code></td></tr><tr><td>NP → KEYS</td><td><code>.converter-key</code></td><td><code>--noedis-convert-key</code></td><td><code class="sw" style="--sw:#5594ff">#5594ff</code></td><td><code>85, 148, 255</code></td></tr><tr><td>CZK → Credits</td><td><code>.converter-topup</code></td><td><code>--noedis-convert-credit</code></td><td><code class="sw" style="--sw:#e9b94f">#e9b94f</code></td><td><code>233, 185, 79</code></td></tr><tr><td>Credits → CZK</td><td><code>.converter-exchange</code></td><td><code>--noedis-convert-exchange</code></td><td><code class="sw" style="--sw:#aa77ef">#aa77ef</code></td><td><code>170, 119, 239</code></td></tr><tr><td>Score → EXP</td><td><code>.converter-collect</code></td><td><code>--noedis-convert-score</code></td><td><code class="sw" style="--sw:#ff6673">#ff6673</code></td><td><code>255, 102, 115</code></td></tr><tr><td>Invest → unlock</td><td><code>.converter-invest</code></td><td><code>--noedis-convert-invest</code></td><td><code class="sw" style="--sw:#63dda8">#63dda8</code></td><td><code>99, 221, 168</code></td></tr></tbody></table>
+<p>Stejné hodnoty nese i <code>CONVERTER_INFO</code> v <code>Space.tsx:91–133</code> (barvy průvodce). <code>--converter</code> je definované v <code>index.css:1942–1954</code> a <code>:2039–2040</code>.</p>
+<h3 id="2-6-světlý-režim">2.6 Světlý režim</h3>
+<p>Světlé plochy mají vlastní klidnou paletu; akcenty zůstávají jen na stav a akci.</p>
+<table><thead><tr><th>Role</th><th>Hex</th></tr></thead><tbody><tr><td>Podklad</td><td><code class="sw" style="--sw:#f8f8fb">#f8f8fb</code></td></tr><tr><td>Text</td><td><code class="sw" style="--sw:#333547">#333547</code></td></tr><tr><td>Fialová (odkazy, akce)</td><td><code class="sw" style="--sw:#6d56ce">#6d56ce</code></td></tr><tr><td>Cyan (stav)</td><td><code class="sw" style="--sw:#65e5f5">#65e5f5</code></td></tr></tbody></table>
+<p><strong>Pozor na rozsah.</strong> Dashboard <code>.noedis-dashboard</code> je <em>theme-pinned</em>: v obou režimech řeší na stejné noční plochy. Legacy světlé regoly v <code>index.css</code> proto nesou guard <code>:not(:has(.noedis-dashboard))</code>, aby se „polosvětlý deck" nikdy nevykreslil. Nové světlé pravidlo vždy opatři stejným guardem.</p>
+<h3 id="2-7-knihovna-skla-bílá-s-alfou">2.7 Knihovna skla (bílá s alfou)</h3>
+<p>Sklo se nestaví z jedné barvy, ale z úzké škály bílých vrstev. Drž se těchto hodnot:</p>
+<table><thead><tr><th>Hodnota</th><th>Použití</th></tr></thead><tbody><tr><td><code class="sw" style="--sw:#ffffff04">#ffffff04</code>, <code class="sw" style="--sw:#ffffff05">#ffffff05</code>, <code class="sw" style="--sw:#ffffff06">#ffffff06</code></td><td>výplň neaktivní plochy</td></tr><tr><td><code class="sw" style="--sw:#ffffff08">#ffffff08</code>, <code class="sw" style="--sw:#ffffff0b">#ffffff0b</code></td><td>jemná výplň, inset linka</td></tr><tr><td><code class="sw" style="--sw:#ffffff10">#ffffff10</code>, <code class="sw" style="--sw:#ffffff12">#ffffff12</code>, <code class="sw" style="--sw:#ffffff14">#ffffff14</code></td><td>viditelná linka / rámeček</td></tr><tr><td><code class="sw" style="--sw:#ffffff16">#ffffff16</code>, <code class="sw" style="--sw:#ffffff18">#ffffff18</code>, <code class="sw" style="--sw:#ffffff1a">#ffffff1a</code></td><td>okraj inputu</td></tr><tr><td><code class="sw" style="--sw:#ffffff20">#ffffff20</code>, <code class="sw" style="--sw:#ffffff22">#ffffff22</code></td><td>výraznější okraj, hover</td></tr><tr><td><code class="sw" style="--sw:#ffffff26">#ffffff26</code>, <code class="sw" style="--sw:#ffffff2e">#ffffff2e</code></td><td>dělicí linka v tmavém kontextu</td></tr><tr><td><code class="sw" style="--sw:#ffffffa8">#ffffffa8</code>, <code class="sw" style="--sw:#ffffffd9">#ffffffd9</code></td><td>světlé pilulky, skoro bílá</td></tr></tbody></table>
+<p>Krytí <strong>4–20 %</strong> je pracovní rozsah pro výplně a okraje.</p>
+<hr />
+<h2 id="3-gradienty">3. Gradienty</h2>
+<p>Gradient nese hloubku nebo <em>aktivaci</em>. Nikdy není dekorativní náhoda. Vždy používej pojmenovanou rodinu, ne nový gradient s mírně jinými stopy.</p>
+<h3 id="3-1-modrá-fialová-primární-gateway">3.1 Modrá–fialová — primární gateway</h3>
+<pre class="code lang-css">--noedis-gradient-blue-purple: linear-gradient(115deg, #507cff 0%, #8a54ef 52%, #35c9ed 100%);</pre>
+<p>Toto je <strong>odpočinkový stav primárního vstupu</strong>. Vykresluje hlavní CTA <code>ENTER NOW</code> (<code>.welcome-enter</code>, <code>index.css:2522</code>) a je to vizuální podpis „vstupu do NOEDIS".</p>
+<p>Související, ale samostatný odstín pro vytvoření identity:</p>
+<pre class="code lang-css">background: linear-gradient(110deg, #7555d9, #5f50d8 52%, #388edc);  /* .welcome-auth-create */</pre>
+<h3 id="3-2-oranžová-červená-aktivace">3.2 Oranžová–červená — aktivace</h3>
+<pre class="code lang-css">--noedis-gradient-orange-red: linear-gradient(115deg, #ff295f 0%, #ff5737 48%, #ffb43d 100%);</pre>
+<p><strong>Toto je aktivační signál, ne klidová barva.</strong> Na Welcome je schovaný v <code>.welcome-enter::before</code> s <code>opacity: 0</code> a rozsvítí se až při <code>:hover</code> (<code>index.css:2523</code>, <code>:2532</code>). Znamená „gateway se právě aktivuje".</p>
+<blockquote><p><strong>Nikdy nedělej <code>ENTER NOW</code> oranžové v klidu.</strong> Oranžovo-červená je odměna za akci, ne výchozí stav.</p></blockquote>
+<h3 id="3-3-zelená-domov-a-earned">3.3 Zelená — domov a earned</h3>
+<pre class="code lang-css">--noedis-gradient-home: linear-gradient(115deg, #159664, #2ab77f);</pre>
+<p>Navigační a „zdravá" akce: <code>GO HOME</code> (<code>.dashboard-enter</code>, <code>index.css:1547</code>). Nesmí nikdy zdědit barvu aktivní měny — vede na Home Dashboard, ne na další převod.</p>
+<h3 id="3-4-spektrum-názvu-welcome-h1">3.4 Spektrum názvu (Welcome h1)</h3>
+<p>Motto <code>PLANT IDEAS</code> je vykreslené gradientem přes text, nikoli plnou barvou:</p>
+<pre class="code lang-css">background-image:
+  linear-gradient(105deg, transparent 35%, #ffffffea 47%, #bdedffba 50%, transparent 61%),
+  linear-gradient(90deg, #19dfff 0%, #5657ff 23%, #af46e5 47%, #ef427c 72%, #ff9c32 100%);
+background-clip: text;
+-webkit-text-fill-color: transparent;
+-webkit-text-stroke: .65px #ffffffc9;
+paint-order: stroke fill;</pre>
+<p>Pět stopů <code>#19dfff → #5657ff → #af46e5 → #ef427c → #ff9c32</code> je <strong>celý spektrální podpis značky</strong>. Stejné barvy se vracejí v tagline <code>DESIGN · BUILD · ENJOY</code>:</p>
+<table><thead><tr><th>Slovo</th><th>Barva</th></tr></thead><tbody><tr><td>DESIGN</td><td><code class="sw" style="--sw:#19dfff">#19dfff</code></td></tr><tr><td>BUILD</td><td><code class="sw" style="--sw:#af46e5">#af46e5</code></td></tr><tr><td>ENJOY</td><td><code class="sw" style="--sw:#ff9c32">#ff9c32</code></td></tr></tbody></table>
+<h3 id="3-5-fialová-magenta-oranžová-průvodce-ekonomií">3.5 Fialová–magenta–oranžová — průvodce ekonomií</h3>
+<p>Třetí rodina, rezervovaná pro „walkthrough" a průvodce převody:</p>
+<pre class="code lang-css">background: linear-gradient(115deg, #7d45eb, #dd397b 52%, #ff8737);  /* .economy-guide-trigger */
+background: linear-gradient(115deg, #773be9, #dd386f 55%, #f88937);  /* .economy-guide-play */</pre>
+<p>Je teplejší a dramatičtější než §3.1 — použij ji jen na vysvětlující/uvítací akci, nikdy na samotný převod.</p>
+<h3 id="3-6-atmosférické-radiály">3.6 Atmosférické radiály</h3>
+<p>Tyto gradienty nedrží obsah, jen hloubku. Vždy <code>mix-blend-mode: screen</code>.</p>
+<p><strong>Welcome</strong> (<code>index.css:2471–2475</code>):</p>
+<pre class="code lang-css">/* závoj přes kosmickou fotku */
+.welcome-screen::before { background: radial-gradient(ellipse at 50% 43%, #03091a44, transparent 64%), linear-gradient(#050b2244, transparent 22%, #070d2630 67%, #040a248a); }
+
+/* mlhovina — růžová + cyan */
+.welcome-nebula { background: radial-gradient(ellipse at 78% 22%, #ff49a32b, transparent 38%), radial-gradient(ellipse at 12% 50%, #00ccff33, transparent 44%); animation: welcome-nebula 12s ease-in-out infinite alternate; }
+
+/* oceánský svit */
+.welcome-ocean-light { background: radial-gradient(ellipse at 50% 65%, #10daff30, transparent 57%); filter: blur(22px); }
+
+/* nebeská záře — teplé světlo v horní atmosféře */
+.welcome-celestial-glow { width: 42vw; right: 7%; top: 3%; background: radial-gradient(circle, #fff6c633 0 1%, #ff893526 18%, #ff3fa315 42%, transparent 70%); animation: welcome-celestial 9s ease-in-out infinite alternate; }
+
+/* hvězdné pole */
+.welcome-starfield { opacity: .42; background-image: radial-gradient(circle, #fff 0 1px, transparent 1.7px), radial-gradient(circle, #61e9ff 0 1px, transparent 1.5px); background-size: 83px 83px, 127px 127px; background-position: 0 0, 31px 47px; animation: welcome-star-pan 38s linear infinite; }</pre>
+<p><strong>Citadel color grade</strong> (<code>index.css:2399</code>) — cyan vlevo, magenta vpravo, tmavé indigo uprostřed:</p>
+<pre class="code lang-css">.citadel-color-grade {
+  background:
+    radial-gradient(ellipse at 12% 48%, #04d9ff24, transparent 33%),
+    radial-gradient(ellipse at 88% 43%, #ff29953d, transparent 38%),
+    radial-gradient(ellipse at 50% 58%, #05092300 16%, #060b2a5c 46%, transparent 70%),
+    linear-gradient(90deg, #042e6d22, transparent 42% 58%, #9d074722);
+  mix-blend-mode: screen;
+}</pre>
+<p><strong>Citadel disk pod kolem</strong> (<code>CitadelWheel.css:357</code>) — hrad je světlý a rušný, proto prstenci sedí na vlastním zastíněném disku:</p>
+<pre class="code lang-css">.citadel-stage::before { border-radius: 50%; background: radial-gradient(circle, #050b1ae0 0%, #050b1ac4 40%, #050b1a86 66%, #050b1a30 80%, transparent 90%); }</pre>
+<p><strong>Dashboard aurora a mřížka</strong> (<code>DashboardControl.css:81–121</code>) — <code>::before</code> drží blueprint mřížku + rohové záře, <code>::after</code> dvě pomalé auroře s <code>nd-aurora 34s</code>. Maska <code>radial-gradient(125% 88% at 50% 30%, …)</code> drží mřížku na okrajích, aby nekonkurovala textu uprostřed.</p>
+<h3 id="3-7-pravidla-pro-gradienty">3.7 Pravidla pro gradienty</h3>
+<table><thead><tr><th>Situace</th><th>Gradient</th></tr></thead><tbody><tr><td>Primární vstup v klidu</td><td>modrá–fialová §3.1</td></tr><tr><td>Primární vstup při aktivaci</td><td>oranžová–červená §3.2</td></tr><tr><td>Návrat domů / earned akce</td><td>zelená §3.3</td></tr><tr><td>Nadpis značky</td><td>spektrum §3.4</td></tr><tr><td>Vysvětlující průvodce</td><td>§3.5</td></tr><tr><td>Atmosféra a hloubka</td><td>radiály §3.6</td></tr></tbody></table>
+<p>Zakázáno: druhý gradient ve stejném prvku, oranžová v klidu, gradient na navigačním tlačítku mapy, nový gradient s posunutými stopy o pár procent.</p>
+<hr />
+<h2 id="4-tlačítka">4. Tlačítka</h2>
+<h3 id="4-1-rodiny">4.1 Rodiny</h3>
+<table><thead><tr><th>Rodina</th><th>Vzhled</th><th>Význam</th></tr></thead><tbody><tr><td><strong>Primary / gateway</strong></td><td>plný gradient, tmavý text, velký radius (<code>999px</code>)</td><td>vstup, postup vpřed</td></tr><tr><td><strong>Primary / card</strong></td><td>gradient z barvy karty, bílý text, radius <code>9px</code></td><td>potvrzení převodu</td></tr><tr><td><strong>Secondary / tinted</strong></td><td><code>color-mix</code> 10 % akcentu, text v akcentu</td><td>alternativa vedle primární</td></tr><tr><td><strong>Ghost / glass</strong></td><td><code>#ffffff04–08</code>, 1px nízký okraj</td><td>neutralita, utility</td></tr><tr><td><strong>Navigation / white</strong></td><td><code>linear-gradient(#fff, #e6eefb)</code>, tmavý text</td><td>vratný krok (Zpět, Do středu)</td></tr><tr><td><strong>Home / green</strong></td><td><code>linear-gradient(115deg, #159664, #2ab77f)</code></td><td>návrat na Home Dashboard</td></tr><tr><td><strong>Disabled</strong></td><td><code>opacity: .34–.55</code>, žádný lift, žádná záře</td><td>nedostupné</td></tr></tbody></table>
+<h3 id="4-2-welcome">4.2 Welcome</h3>
+<p><strong><code>ENTER NOW</code></strong> — nejdůležitější tlačítko produktu (<code>index.css:2522–2536</code>):</p>
+<pre class="code lang-css">.welcome-enter {
+  position: relative; isolation: isolate;
+  display: inline-flex; justify-content: center; align-items: center; gap: 30px;
+  min-width: 260px; min-height: 65px; overflow: hidden;
+  margin: 0 0 30px; padding: 18px 30px;
+  border: 1px solid #c8f3ff9c; border-radius: 999px;
+  color: #071226;
+  background: linear-gradient(115deg, #507cff, #8a54ef 52%, #35c9ed);
+  background-size: 180% 180%;
+  box-shadow: 0 0 36px #4a76ff55, inset 0 1px #ffffff91;
+  cursor: pointer;
+  transition: transform .35s cubic-bezier(.2,.8,.2,1), color .35s, border-color .35s, box-shadow .45s;
+  animation: welcome-enter-unlock 7.2s ease-in-out infinite;   /* §6 */
+}
+.welcome-enter span { position: relative; z-index: 1; font: 900 17px/1 system-ui; letter-spacing: .26em; }
+.welcome-enter b    { position: relative; z-index: 1; font-size: 25px; }
+.welcome-enter:hover {
+  transform: translateY(-4px) scale(1.025);
+  color: #210812; border-color: #ffe0adcc;
+  box-shadow: 0 0 24px #ff405fa8, 0 0 65px #ff8a356e, inset 0 1px #fff;
+}
+.welcome-enter:focus-visible { outline: 3px solid white; outline-offset: 6px; }</pre>
+<p>Složení: <code>span</code> = label <code>ENTER NOW</code> (<code>900 17px</code>, prostrkání <code>.26em</code>), <code>b.welcome-lock</code> = SVG zámek, který se každých 7,2 s pootevře (<code>welcome-lock-open</code>).</p>
+<p>Tři vrstvy tvoří trik: základ = modro-fialová, <code>::before</code> = oranžovo-červená (<code>z-index: -2</code>, <code>opacity: 0</code>), <code>::after</code> = bílý „shine" pruh (<code>z-index: -1</code>). Hover zapne obě a rozjede <code>welcome-enter-warm-flow</code> + <code>welcome-enter-shine</code>.</p>
+<p><strong>Auth karta</strong> (<code>.welcome-auth-card</code>, <code>index.css:2554–2583</code>):</p>
+<table><thead><tr><th>Prvek</th><th>Background</th><th>Radius</th><th>Text</th></tr></thead><tbody><tr><td>Karta</td><td><code>linear-gradient(150deg, #132746db, #120d2ae8)</code></td><td><code>19px</code></td><td>—</td></tr><tr><td><code>Vytvořit účet</code></td><td><code>linear-gradient(110deg, #7555d9, #5f50d8 52%, #388edc)</code></td><td><code>12px</code></td><td><code>white</code>, <code>750 11px</code></td></tr><tr><td><code>Přihlásit se</code></td><td><code class="sw" style="--sw:#ffffff08">#ffffff08</code> + okraj <code class="sw" style="--sw:#c8eaff26">#c8eaff26</code></td><td><code>11px</code></td><td><code class="sw" style="--sw:#dce7f7">#dce7f7</code>, <code>650 10px</code></td></tr></tbody></table>
+<p>Hover obou: <code>translateY(-2px)</code>; login navíc <code>border-color: #75e6ef78</code> a <code>box-shadow: 0 0 20px #45d8e923</code>.</p>
+<p><strong>Utility ovládání</strong> — jazykový přepínač, zvuk, <code>?</code>, manifesto:</p>
+<pre class="code lang-css">.welcome-language-select { border: 1px solid #d8e5ff88; border-radius: 24px; background: #071b38dc; }
+.welcome-language-picker button { border: 1px solid #d8e5ff22; border-radius: 50%; background: #071b38a6; }
+.welcome-language-picker button:hover { border-color: #d8e5ff77; background: #173259d6; transform: scale(1.06); }
+.welcome-sound-control &gt; button,
+.welcome-info-toggle { border: 1px solid #dbeaff61; border-radius: 50%; background: #081831b3; }
+/* hover všech utility tlačítek */
+{ transform: scale(1.07); border-color: #65e9ffba; box-shadow: 0 0 26px #41d9ff55; }</pre>
+<p>Pravidlo: <strong>utility je cyan, ne oranžová.</strong> Oranžová je jen pro postup vpřed.</p>
+<h3 id="4-3-citadel">4.3 Citadel</h3>
+<p><strong><code>VSTOUPIT</code> — brána</strong> (<code>.citadel-enter</code>, <code>CitadelWheel.css:854–875</code>). Barvu bere z cílového portálu, takže brána vždy ladí s destinací:</p>
+<pre class="code lang-css">.citadel-enter {
+  display: flex; align-items: center; gap: 8px; margin-left: auto;
+  padding: 3px 12px 3px 4px;
+  border: 1px solid color-mix(in srgb, var(--portal-color) 68%, white);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 18% 50%, color-mix(in srgb, var(--portal-color) 42%, transparent), transparent 29%),
+    linear-gradient(110deg, #0a1930f2, color-mix(in srgb, var(--portal-color) 30%, #12243b));
+  color: #f4fbff;
+  box-shadow: inset 0 1px #ffffff27, 0 8px 22px #0208177a, 0 0 20px color-mix(in srgb, var(--portal-color) 22%, transparent);
+  transition: border-color .16s, box-shadow .16s, filter .16s;
+}
+.citadel-enter:hover, .citadel-enter:focus-visible {
+  border-color: color-mix(in srgb, var(--portal-color) 42%, white);
+  box-shadow: inset 0 1px #ffffff35, 0 8px 24px #02081790, 0 0 28px color-mix(in srgb, var(--portal-color) 40%, transparent);
+  filter: brightness(1.12);
+}</pre>
+<p>Uvnitř je <code>.citadel-enter-icon</code> — kruh s prstencem a SVG ikonou brány (<code>stroke: #efffff</code>, <code>stroke-width: 1.6</code>, <code>filter: drop-shadow(0 0 4px var(--portal-color))</code>).</p>
+<p>Typografie labelu <strong>není na tlačítku</strong>, ale na potomkovi:</p>
+<pre class="code lang-css">.citadel-enter-label { font: 800 11px/1 system-ui; letter-spacing: .15em; }</pre>
+<p>Výšku celé brány i ikony řídí <code>--bar-h</code>, nastavovaná v JS: <code>58px</code> na široké obrazovce, <code>52px</code> compact, <code>44px</code> na krátké obrazovce (<code>CitadelWheel.tsx:154</code>). Label <code>VSTOUPIT</code> je v <code>CitadelWheel.tsx:1027</code>.</p>
+<p><strong>Bílé pilulky</strong> — <code>← Zpět</code> a <code>⌖ Do středu</code> (<code>CitadelWheel.css:690–729</code>):</p>
+<pre class="code lang-css">.citadel-pill {
+  padding: 8px 18px 8px 14px;
+  border: 1px solid #ffffffd9; border-radius: 999px;
+  background: linear-gradient(#ffffff, #e6eefb);
+  color: #0d1a2b;
+  font: 700 11px/1 system-ui; letter-spacing: .14em; text-transform: uppercase;
+  box-shadow: inset 0 1px #ffffff, 0 8px 22px #0208179c, 0 0 22px #ffffff3d;
+  backdrop-filter: blur(10px);
+}
+.citadel-home { background: linear-gradient(#f2f6fd, #dbe6f6); }  /* o odstín tišší */
+.citadel-pill:hover:not(:disabled) { background: #fff; box-shadow: inset 0 1px #ffffff, 0 10px 26px #020817b0, 0 0 30px #ffffff59; }
+.citadel-pill:disabled { opacity: .34; cursor: default; }
+.citadel-pill.is-charging { border-color: #4aa8ff; box-shadow: inset 0 1px #ffffff, 0 8px 22px #0208179c, 0 0 26px #4aa8ffb3; }</pre>
+<p><strong>Pravidlo Citadely:</strong> modrá, fialová a žlutá nesou <em>informaci</em> (zóny). Červeno-oranžový aktivační gradient na běžnou navigaci mapy <strong>nepatří</strong>.</p>
+<blockquote><p><code>.citadel-step</code> <strong>není styl</strong> — je to jen JSX hook (<code>CitadelWheel.tsx:1066</code>), žádné vlastní pravidlo nemá. <code>.citadel-pill.citadel-step</code> se vykreslí přesně jako <code>.citadel-pill</code>. Stejně tak <code>is-engaged</code>, <code>has-focus</code>, <code>is-hover</code>, <code>.citadel-cosmic</code> a <code>.castle-gate</code> jsou třídy bez CSS pravidla.</p></blockquote>
+<p><strong>Další ovládání:</strong> <code>.citadel-actions</code> (akční lišta vpravo, hover rozšíří na <code>164px</code>), <code>.citadel-modes</code> (přepínač zobrazení, hover <code>172px</code>), <code>.citadel-search</code> (rozbalovací hledání), <code>.citadel-legend</code> (floor bar se zónami), <code>.citadel-trail-step</code> (kroky cesty). Všechny jsou tmavé sklo <code>#ffffff04–#ffffff12</code> s <code>backdrop-filter</code>.</p>
+<h3 id="4-4-convert">4.4 Convert</h3>
+<p>Dvě tlačítka na kartu. Poměr šířek je <code>1.65 : 1</code> (<code>index.css:5571–5584</code>).</p>
+<p><strong>Primární — potvrzení převodu</strong> (<code>.converter-submit</code>):</p>
+<pre class="code lang-css">.converter-submit {
+  border: 1px solid color-mix(in srgb, var(--converter) 70%, white 10%);
+  background: linear-gradient(115deg, color-mix(in srgb, var(--converter) 78%, #342bb3), var(--converter));
+  color: white;
+  box-shadow: 0 8px 20px rgba(var(--converter-rgb), .18);
+}</pre>
+<p>Toto je <strong>kanonický vzorec primární akce v Convertu</strong>: akcent se smíchá s <code class="sw" style="--sw:#342bb3">#342bb3</code> (indigo) a přejde do plné barvy akcentu. Drž směr <code>115deg</code>.</p>
+<p><strong>Sekundární — <code>CONVERT ALL</code></strong> (<code>.convert-all</code>):</p>
+<pre class="code lang-css">.convert-all {
+  border: 1px solid color-mix(in srgb, var(--converter) 45%, transparent);
+  background: color-mix(in srgb, var(--converter) 10%, transparent);
+  color: var(--converter);
+}</pre>
+<p>Společné: <code>min-height: 35px</code>, <code>border-radius: 9px</code>, <code>font-size: 8px</code>, <code>font-weight: 900</code>, <code>letter-spacing: .1em</code>. V <code>.economy-section</code> se zvětší na <code>min-height: 41px</code>, <code>font-size: 9px</code>.</p>
+<p><strong>Disabled</strong> — obojí <code>opacity: .38</code>, <code>cursor: default</code>, bez záře:</p>
+<pre class="code lang-css">.converter-submit:disabled,
+.convert-all:disabled { opacity: .38; cursor: default; }</pre>
+<p><strong>Potvrzovací checkbox</strong> (<code>.converter-confirm</code>, <code>index.css:5656–5706</code>) — 22×22, radius <code>6px</code>, akcentový rámeček; zaškrtnutý stav <code>background: color-mix(… 13%)</code>, nezaškrtnutý <code>transparent</code>; <code>:focus-within</code> přidá <code>box-shadow: 0 0 0 2px color-mix(in srgb, var(--converter) 22%, transparent)</code>.</p>
+<p><strong>Presety a pomocné prvky:</strong></p>
+<pre class="code lang-css">.converter-presets button          { border: 1px solid #ffffff12; border-radius: 8px; background: #ffffff04; color: #8f9aaf; }
+.converter-presets button.active   { border-color: color-mix(in srgb, var(--converter) 60%, transparent); background: color-mix(in srgb, var(--converter) 16%, transparent); color: #f3ecff; }
+.converter-controls button:hover   { background: color-mix(in srgb, var(--converter) 17%, transparent); color: white; }
+.investment-options button.active  { border-color: color-mix(in srgb, var(--converter) 66%, transparent); color: #effff8; }</pre>
+<p><strong>Ikona převodu</strong> (<code>.converter-symbol</code>, <code>index.css:5255–5283</code>) — 36×36, radius <code>11px</code>, <code>border: 1px solid color-mix(in srgb, var(--converter) 58%, #ffffff22)</code>, <code>box-shadow: 0 0 18px rgba(var(--converter-rgb), .22)</code>, <code>text-shadow: 0 0 12px rgba(var(--converter-rgb), .7)</code>. Hover/focus: <code>box-shadow: 0 0 25px rgba(var(--converter-rgb), .42)</code> + <code>translateY(-2px)</code>.</p>
+<h3 id="4-5-stavy-jednotný-recept">4.5 Stavy — jednotný recept</h3>
+<table><thead><tr><th>Stav</th><th>Ošetření</th></tr></thead><tbody><tr><td>Resting</td><td>tmavé sklo, 1px nízko-kontrastní okraj</td></tr><tr><td>Hover</td><td><code>brightness(1.08–1.12)</code>, malý lift (<code>translateY(-1 až -4px)</code>), záře <strong>jen u akčního</strong> prvku</td></tr><tr><td>Focus</td><td>viditelný obrys 2–3px s offsetem; nikdy nespoléhej jen na záři</td></tr><tr><td>Active / selected</td><td>akcentový okraj + tónovaná vnitřní plocha</td></tr><tr><td>Charging</td><td>akcentový okraj + <code>box-shadow</code> záře (<code>is-charging</code> na pilulkách)</td></tr><tr><td>Disabled</td><td><code>opacity: .34–.55</code>, žádný lift, žádná záře</td></tr><tr><td>Error / blocked</td><td>danger <code class="sw" style="--sw:#ff6673">#ff6673</code>, krátké vysvětlení textem</td></tr></tbody></table>
+<hr />
+<h2 id="5-obrazovky">5. Obrazovky</h2>
+<h3 id="5-1-welcome-kosmický-vstup">5.1 Welcome — kosmický vstup</h3>
+<p><strong>Tón:</strong> otevřený, zářivý, optimistický. Je to jediná obrazovka, kde je hodně světla a teplých barev.</p>
+<p><strong>Vrstvení</strong> (zadní → přední):</p>
+<table><thead><tr><th>z</th><th>Vrstva</th><th>Zdroj</th></tr></thead><tbody><tr><td>−2</td><td><code>welcome-universe</code> — kosmická fotka <code>public/welcome-cosmos.png</code> s <code>welcome-space-drift 32s</code></td><td><code>index.css:2467</code></td></tr><tr><td>−1</td><td><code>welcome-screen::before</code> — tmavý závoj</td><td><code>index.css:2471</code></td></tr><tr><td>−1</td><td><code>welcome-stardust</code> — 24 jisker <code>welcome-spark</code></td><td><code>index.css:2476</code></td></tr><tr><td>0</td><td><code>welcome-nebula</code>, <code>welcome-ocean-light</code>, <code>welcome-celestial-glow</code>, <code>welcome-starfield</code></td><td><code>index.css:2472–2475</code></td></tr><tr><td>0</td><td><code>welcome-sky-lights</code> — 7 světel nad horizontem (každé 3. je <code>crystal</code>)</td><td><code>index.css:2478</code></td></tr><tr><td>0</td><td><code>welcome-beach-magic</code> — dvě oběžné dráhy + 5 drahokamů u spodní hrany</td><td><code>index.css:2603</code></td></tr><tr><td>1</td><td><code>welcome-stage</code> → <code>welcome-content</code></td><td><code>index.css:2494</code></td></tr><tr><td>2</td><td><code>welcome-header</code> → <code>welcome-brand</code> + <code>welcome-media-dock</code></td><td><code>index.css:2485</code>, <code>:2820</code></td></tr><tr><td>5–6</td><td><code>welcome-build-badge</code>, <code>welcome-knowledge-dock</code>, <code>welcome-auth-card</code></td><td><code>index.css:2488</code>, <code>:2687</code>, <code>:2554</code></td></tr></tbody></table>
+<blockquote><p><strong>Pozor na mrtvé selektory.</strong> <code>.welcome-footer</code>, <code>.welcome-language-picker</code> a <code>.welcome-header-language &gt; span</code> mají v <code>index.css</code> pravidla, ale <code>Welcome.tsx</code> je nevykresluje (0 výskytů). Živý jazykový a zvukový ovladač je <strong><code>.welcome-media-dock</code></strong> v hlavičce (<code>index.css:2820</code>). Mrtvé jsou i tyto <code>@keyframes</code>: <code>welcome-title-spectrum</code>, <code>welcome-belief-rise</code>, <code>welcome-title-pulse</code>.</p></blockquote>
+<p><strong>Fotka se ladí podle režimu:</strong></p>
+<pre class="code lang-css">html[data-theme="dark"]                              .welcome-universe &gt; img { filter: brightness(.72) saturate(1.15) contrast(1.08); }
+html:not([data-theme="dark"]):not(:has(.noedis-dashboard)) .welcome-universe &gt; img { filter: brightness(1.18) saturate(.9)  contrast(.94); }</pre>
+<p><strong>Layout:</strong></p>
+<pre class="code lang-css">.welcome-stage { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(24px, 4vh, 42px); padding: 108px 20px 24px; }
+.welcome-header { position: absolute; top: 0; left: 0; right: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 20px 40px; }
+/* pozdější override, index.css:2819 */
+.welcome-header { grid-template-columns: 1fr auto; }</pre>
+<p>V hlavičce sedí vlevo <code>welcome-brand</code> (labuť + wordmark) a vpravo <code>welcome-media-dock</code> — pilulka 48px vysoká se sklem <code>linear-gradient(135deg, #102641e8, #15102ee8)</code>, okrajem <code class="sw" style="--sw:#b8e9ff54">#b8e9ff54</code> a <code>backdrop-filter: blur(17px) saturate(1.15)</code>. V ní jsou zvuk a jazyk oddělené svislou linkou <code>linear-gradient(transparent, #b8e9ff54, transparent)</code>. Dock se vždy zarovnává doprava (<code>justify-self: end</code>).</p>
+<p><strong>Typografická hierarchie obsahu</strong> (shora dolů):</p>
+<table><thead><tr><th>Prvek</th><th>Text</th><th>Styl</th><th>Barva</th></tr></thead><tbody><tr><td><code>.welcome-eyebrow</code></td><td><code>A UNIVERSE OF POSSIBILITIES</code></td><td><code>600 10px/1.4</code>, <code>letter-spacing: .4em</code></td><td><code class="sw" style="--sw:#d5e5ff">#d5e5ff</code></td></tr><tr><td><code>h1 &gt; span</code></td><td><code>PLANT IDEAS</code></td><td>Montserrat <code>900</code>, <code>clamp(52px, 8.55vw, 146px)</code>, <code>line-height: 1.06</code>, uppercase</td><td>spektrum §3.4</td></tr><tr><td><code>h1 &gt; strong</code> = <code>.welcome-belief</code></td><td>floralní <code>YOU BELIEVE IN</code> (<code>you-believe-in-floral.png</code>)</td><td>Montserrat <code>800</code>, <code>clamp(31px, 4.65vw, 80px)</code>, ale <code>.welcome-belief</code> přepíše na <code>line-height: 0; text-shadow: none</code></td><td><code class="sw" style="--sw:#f4f2ff">#f4f2ff</code></td></tr><tr><td><code>.welcome-tagline</code></td><td><code>DESIGN · BUILD · ENJOY</code></td><td>Montserrat <code>900</code>, <code>10px</code>, <code>letter-spacing: .2em</code></td><td>§3.4 barvy</td></tr><tr><td><code>.welcome-enter</code></td><td><code>ENTER NOW</code></td><td><code>900 17px</code>, <code>letter-spacing: .26em</code></td><td><code class="sw" style="--sw:#071226">#071226</code></td></tr><tr><td><code>.welcome-intro</code></td><td><code>Nexus Of Evolution, Destiny, Infinity, and Soul</code></td><td><code>600 10px/1.4</code>, <code>letter-spacing: .4em</code>, uppercase</td><td><code class="sw" style="--sw:#d5e5ff">#d5e5ff</code></td></tr><tr><td><code>.welcome-status</code></td><td>stavové hlášení</td><td><code>12px</code>, <code>letter-spacing: .06em</code></td><td><code class="sw" style="--sw:#baf4ff">#baf4ff</code></td></tr></tbody></table>
+<p><strong>Značka:</strong> <code>.welcome-swan</code> 58×64 s <code>drop-shadow(0 0 16px #adebff99)</code>, <code>.welcome-wordmark</code> 200×70 s <code>drop-shadow(0 4px 12px #020920)</code>.</p>
+<p><strong>Odchod:</strong> <code>.welcome-screen.departing .welcome-stage</code> se posune o <code>translateY(-18px) scale(1.025)</code> s <code>opacity: 0</code> za <code>1.2s</code>, fotka se oddálí na <code>scale(1.1)</code>. Podklad se mezitím prolne do citadely přes <code>.experience-launcher</code> (<code>opacity 1.25s</code> + <code>blur(12px)</code>).</p>
+<p><strong>Breakpoint 600px:</strong> wordmark 125×47, swan 42×47, <code>h1 span</code> <code>clamp(44px, 12.5vw, 72px)</code>, <code>h1 strong</code> <code>clamp(26px, 7.2vw, 40px)</code>, <code>ENTER NOW</code> min <code>230×58</code>, auth karta se přesune z <code>position: fixed</code> do toku.</p>
+<h3 id="5-2-citadel-orientace-a-kontrola">5.2 Citadel — orientace a kontrola</h3>
+<p><strong>Tón:</strong> strukturovaný, architektonický, čitelný, orientační.</p>
+<p><strong>Scéna:</strong></p>
+<pre class="code lang-css">.citadel-scene { position: absolute; inset: 0; overflow: hidden; background: #050a25; }
+.citadel-plane { width: max(130vw, 231.111vh); height: max(73.125vw, 130vh); left: 50%; top: 65%;
+                 transform: translate(calc(-50% + var(--look-x)), calc(-50% + var(--look-y))) scale(1.025);
+                 transition: transform .8s ease-out; }
+.citadel-landscape { position: absolute; inset: 0; animation: citadel-breathe 28s ease-in-out infinite alternate; }
+.citadel-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill;
+                 filter: brightness(.84) saturate(1.08) contrast(1.08); transition: filter .75s ease; }
+html:not([data-theme="dark"]):not(:has(.noedis-dashboard)) .citadel-image { filter: brightness(.98) saturate(1.02) contrast(1.04); }</pre>
+<blockquote><p><strong>Scéna má jediný obrázek: <code>public/citadel-cosmic.png</code></strong> (<code>CitadelScene.tsx:24</code>). <code>citadel-day.png</code> a <code>citadel-night.png</code> v repu existují, ale <strong>nejsou nikde referencované</strong> — přepínač dne/noci pro citadelu neexistuje, jen světlejší <code>filter</code> přes <code>html:not([data-theme="dark"])</code>.</p></blockquote>
+<p>Přes scénu leží color grade §3.6. Na tom stojí <code>.citadel-stage</code> — kruhová interakční plocha (<code>clip-path: circle(50% at 50% 50%)</code>) s vlastním zastíněným diskem, aby barevné prstence byly vůbec vidět.</p>
+<p><strong>Tři prsteny.</strong> Rozestupy řeší <code>src/citadelWheel.ts</code>:</p>
+<pre class="code lang-ts">export const RING_SCALE      = [0.34, 0.66, 1] as const;  // telefon (width &lt; 620 nebo height &lt; 520)
+export const RING_SCALE_WIDE = [0.30, 0.65, 1] as const;  // široká obrazovka
+export const SIZE_BOOST      = 1.2;   // kolo žádá o 20 % víc místa, kde je
+export const COMPASS_SCALE   = 0.18;</pre>
+<p>Zónové poloměry v datech jsou <code>320 : 640 : 960</code>, tedy přesně <code>0.333 : 0.667 : 1</code> (<code>flowtree.json:31–65</code>).</p>
+<blockquote><p>Pozor: <code>docs/design-system.html</code> uvádí <code>0,44 : 0,73 : 1</code>. To je <strong>zastaralé</strong> — aktuální hodnoty jsou výše. Vždy ověř v <code>citadelWheel.ts</code>.</p></blockquote>
+<p><strong>Vykreslení prstenu</strong> (<code>CitadelWheel.css:374–398</code>). Vše se barví z <code>--zone-color</code> (prstenec) a <code>--portal-color</code> (uzel):</p>
+<pre class="code lang-css">.citadel-band        { stroke-opacity: .42; }
+.citadel-ring:has(.citadel-wedge.has-live) .citadel-band { stroke-opacity: .58; }
+.citadel-orbit-halo  { fill: none; stroke: #01040f; stroke-width: 12; opacity: .7; }
+.citadel-orbit       { fill: none; stroke: var(--zone-color); stroke-width: 4; filter: drop-shadow(0 0 9px var(--zone-color)); }
+.citadel-axis        { stroke: var(--zone-color); stroke-width: 1.2; opacity: .5; }
+.citadel-axis-core   { opacity: .32; stroke-dasharray: 3 8; }
+.citadel-wedge       { fill: var(--zone-color); fill-opacity: .07; transition: fill-opacity .2s; }
+.citadel-wedge.has-live { fill-opacity: .14; }
+.citadel-wedge-node  { fill: var(--portal-color); fill-opacity: 0; transition: fill-opacity .18s; }
+.citadel-wedge-node.is-active { fill-opacity: .3; }</pre>
+<p><strong>Název prstence</strong> jede po oblouku uvnitř vlastního pásu, zvednutý z barvy pásu a s tmavým obrysem, aby byl čitelný na hradě:</p>
+<pre class="code lang-css">.citadel-ring-label {
+  fill: color-mix(in srgb, var(--zone-color) 62%, white);
+  font: 800 var(--ring-label-size, 13px)/1 system-ui;
+  letter-spacing: .3em; opacity: .82;
+  paint-order: stroke; stroke: #04091a; stroke-width: 3.5px; stroke-linejoin: round;
+}</pre>
+<p><strong>Uzly v režimu karet</strong> (<code>.citadel-node.mode-cards &gt; b</code>, <code>CitadelWheel.css:438–447</code>):</p>
+<pre class="code lang-css">border-radius: 13px;
+border-color: color-mix(in srgb, var(--zone-color) 60%, transparent);
+background:
+  radial-gradient(circle at 50% 26%, color-mix(in srgb, var(--portal-color) 78%, white), transparent 62%),
+  linear-gradient(160deg, color-mix(in srgb, var(--portal-color) 72%, #16233c), #0b1526 88%);
+box-shadow: inset 0 1px 4px #ffffff30, 0 0 0 3px #03081caa, 0 5px 16px #020711bb, 0 0 20px color-mix(in srgb, var(--portal-color) 38%, transparent);</pre>
+<p><strong>Destination bar</strong> (<code>.citadel-destination</code>) — tmavé sklo <code>linear-gradient(100deg, #0b172de6, #121f38d0)</code>, radius <code>16px</code>, výška <code>var(--bar-h, 58px)</code>, okraj v barvě portálu, <code>backdrop-filter: blur(12px)</code>. Uvnitř kruhová ikona destinace a <code>VSTOUPIT</code> (§4.3).</p>
+<p><strong>Kompas</strong> (<code>.citadel-pad</code>) je vlastní ovládací prvek v pravém dolním rohu: tmavý kruh, přerušované vodicí kružnice <code class="sw" style="--sw:#9fd8ff2e">#9fd8ff2e</code>, mrtvá zóna <code class="sw" style="--sw:#ff8f6b">#ff8f6b</code>, jehla <code class="sw" style="--sw:#bfe8ff">#bfe8ff</code> a knob <code>radial-gradient(circle at 35% 30%, #7fe0ff, #1b3a5c)</code>.</p>
+<p><strong>Klíčová barva:</strong> <code>--hub-color: #6d56ce</code> je fialová osa a jehla kola.</p>
+<h3 id="5-3-convert-ekonomický-dashboard">5.3 Convert — ekonomický dashboard</h3>
+<p><strong>Tón:</strong> každá karta má jednu jednoznačnou identitu měny.</p>
+<p><strong>Sekce:</strong> <code>.economy-section</code> nese <code>--nd-section-accent: var(--nd-product)</code> (<code class="sw" style="--sw:#ffd23f">#ffd23f</code>), takže celá sekce svítí produktovou žlutou. Mřížka je 12sloupcová:</p>
+<pre class="code lang-css">.currency-converter-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.converter-totem, .converter-key                      { grid-column: span 6; }  /* dva hlavní toky */
+.converter-topup, .converter-collect,
+.converter-exchange, .converter-invest                { grid-column: span 3; }  /* čtyři kompaktní */</pre>
+<p>Pořadí na obrazovce: <code>topup (1) → exchange (2) → collect (3) → invest (4)</code> (<code>index.css:2035–2038</code>), takže šest karet tvoří dva řádky.</p>
+<p><strong>Karta</strong> (<code>index.css:1942–1951</code>) — jediný vzorec, který se jen přebarví:</p>
+<pre class="code lang-css">.currency-converter {
+  --converter: #6fdde7;
+  --converter-rgb: 111, 221, 231;
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--converter) 40%, transparent);
+  border-radius: 18px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--converter) 8%, #0c1227), #080d20ed 72%);
+  box-shadow: inset 0 1px #ffffff0c, 0 16px 38px #02040f35;
+}</pre>
+<p>V rozvržení decku (<code>DashboardControl.css:578–586</code>) se stejná karta staví přes <code>--nd-card</code>:</p>
+<pre class="code lang-css">--nd-card: var(--dx-color, var(--converter, var(--package-accent, var(--nd-cyan))));
+border: 1px solid color-mix(in srgb, var(--nd-card) 30%, #16233c);
+border-radius: var(--nd-r-card);   /* 18px */
+background:
+  linear-gradient(180deg, color-mix(in srgb, var(--nd-card) 11%, transparent), transparent 38%),
+  linear-gradient(158deg, #0e1c38f5, #071026fa 72%);
+box-shadow: inset 0 1px #ffffff12, 0 20px 48px #01040c8c;</pre>
+<p>Hover = <code>translateY(-3px)</code> + akcentová záře:</p>
+<pre class="code lang-css">.noedis-dashboard .currency-converter:hover {
+  border-color: color-mix(in srgb, var(--nd-card, var(--nd-cyan)) 62%, #16233c);
+  box-shadow: inset 0 1px #ffffff1c, 0 24px 56px #01040ca6, 0 0 34px color-mix(in srgb, var(--nd-card, var(--nd-cyan)) 20%, transparent);
+}</pre>
+<p>Fokusovaná karta (<code>.converter-focused</code>, <code>index.css:6740–6746</code>) přidá <code>box-shadow: 0 0 0 2px rgba(var(--converter-rgb), .18), 0 0 32px rgba(var(--converter-rgb), .28), inset 0 1px #ffffff18</code>.</p>
+<p><strong>Vnitřní anatomie karty:</strong></p>
+<table><thead><tr><th>Prvek</th><th>Styl</th></tr></thead><tbody><tr><td><code>&gt; header &gt; span</code> (eyebrow <code>01 · PRESENCE</code>)</td><td><code>color: var(--converter)</code>, <code>8px</code>, <code>900</code>, <code>letter-spacing: .16em</code></td></tr><tr><td><code>&gt; header small</code> (MAXIMUM / ZŮSTATEK)</td><td><code class="sw" style="--sw:#6f7a91">#6f7a91</code>, <code>6px</code>, <code>letter-spacing: .12em</code></td></tr><tr><td><code>&gt; header b</code> (hodnota)</td><td><code>var(--converter)</code>, <code>11px</code></td></tr><tr><td><code>h3</code> (<code>TOTEMY → NP</code>)</td><td><code class="sw" style="--sw:#f2f0fa">#f2f0fa</code>, <code>18px</code>, margin <code>6px 0 3px</code></td></tr><tr><td><code>&gt; p</code> (vysvětlení)</td><td><code class="sw" style="--sw:#8792a9">#8792a9</code>, <code>9.5px/1.5</code>, <code>min-height: 30px</code></td></tr><tr><td><code>.converter-hs-row &gt; span</code></td><td><code>border: 1px solid #ffffff10</code>, radius <code>7px</code>, <code>bg: #ffffff04</code></td></tr><tr><td><code>.converter-hs-row .minimum</code></td><td>akcentový okraj 55 % + výplň 12 %</td></tr><tr><td><code>.converter-controls</code></td><td>mřížka <code>36px 1fr 36px 52px</code>, radius <code>9px</code>, <code>bg: #060b1b</code></td></tr><tr><td><code>.converter-controls input</code></td><td>gradient z akcentu, <code>color: #fff</code>, <code>14px</code>, <code>850</code>, centrovaný</td></tr><tr><td><code>.converter-key-visual &gt; span</code></td><td><code class="sw" style="--sw:#ffffff04">#ffffff04</code>, radius <code>9px</code>, barva v akcentu</td></tr><tr><td><code>.credit-origin b</code></td><td><code>var(--converter)</code>, <code>10px</code></td></tr></tbody></table>
+<p><strong>Vysvětlující vrstva.</strong> Sekce má vlastní walkthrough: <code>.economy-guide-trigger</code> (gradient §3.5, radius <code>999px</code>) a <code>.economy-guide-play</code> (radius <code>14px</code>). Panel <code>.economy-guide-menu</code> má <code>z-index: 80</code> a otevírá se <code>economy-guide-menu-in</code>.</p>
+<p><strong><code>GO HOME</code></strong> je navigace, ne převod — drží zelenou §3.3 a <strong>nikdy nedědí barvu aktivní měny</strong>. Jeho cíl je Home Dashboard, ne další konverzní akce.</p>
+<p><strong>Breakpointy:</strong> <code>1279px</code> → 2 sloupce, <code>820px</code> → 1 sloupec (<code>.economy-section</code> zúží padding na <code>12px</code>), <code>520px</code> → HS řádek na 5 sloupců.</p>
+<hr />
+<h2 id="6-tvary-stíny-a-pohyb">6. Tvary, stíny a pohyb</h2>
+<h3 id="6-1-rádiusy">6.1 Rádiusy</h3>
+<table><thead><tr><th>Hodnota</th><th>Token</th><th>Typické použití</th></tr></thead><tbody><tr><td><code>50%</code></td><td>—</td><td>kruhy, orb, ikony, kompas</td></tr><tr><td><code>999px</code></td><td>—</td><td>pilulky, hlavní gateway CTA</td></tr><tr><td><code>8px</code></td><td>—</td><td>malé chipy, presety</td></tr><tr><td><code>9px</code></td><td>—</td><td>ovládací pruhy, tlačítka převodu</td></tr><tr><td><code>10px</code></td><td>—</td><td>navigační tlačítka mapy</td></tr><tr><td><code>11px</code></td><td>—</td><td>ikona převodu, login tlačítko</td></tr><tr><td><code>12px</code></td><td><code>--nd-r-chip</code></td><td>tlačítko vytvoření účtu</td></tr><tr><td><code>13px</code></td><td>—</td><td>brána <code>VSTOUPIT</code>, uzel v režimu karet</td></tr><tr><td><code>14px</code></td><td>—</td><td>launcher exit, guide play</td></tr><tr><td><code>16px</code></td><td>—</td><td>destination bar</td></tr><tr><td><code>18px</code></td><td><code>--nd-r-card</code></td><td>karta převodu</td></tr><tr><td><code>19px</code></td><td>—</td><td>auth karta</td></tr><tr><td><code>20px</code></td><td><code>--nd-r-panel</code></td><td>panel</td></tr><tr><td><code>22–25px</code></td><td>—</td><td>dialogy</td></tr></tbody></table>
+<h3 id="6-2-stíny-a-záře">6.2 Stíny a záře</h3>
+<table><thead><tr><th>Vzorec</th><th>Význam</th></tr></thead><tbody><tr><td><code>inset 0 1px #ffffff12–27</code></td><td>horní světelná hrana skla (skoro vždy)</td></tr><tr><td><code>0 16px 38px #02040f35</code></td><td>klidová hloubka karty</td></tr><tr><td><code>0 20px 48px #01040c8c</code></td><td>hloubka panelu v decku</td></tr><tr><td><code>0 0 34px color-mix(… 20%, transparent)</code></td><td>akcentová záře (hover)</td></tr><tr><td><code>0 0 36px #4a76ff55, inset 0 1px #ffffff91</code></td><td>gateway v klidu</td></tr><tr><td><code>0 0 24px #ff405fa8, 0 0 65px #ff8a356e</code></td><td>gateway při aktivaci</td></tr><tr><td><code>0 32px 90px #000b</code></td><td>modální dialog</td></tr></tbody></table>
+<h3 id="6-3-přechody">6.3 Přechody</h3>
+<table><thead><tr><th>Vzorec</th><th>Kde</th></tr></thead><tbody><tr><td><code>transform .35s cubic-bezier(.2,.8,.2,1)</code></td><td><code>ENTER NOW</code> (<code>index.css:2522</code>)</td></tr><tr><td><code>transform .18s, box-shadow .18s</code></td><td>uzel kola (<code>CitadelWheel.css:507</code>)</td></tr><tr><td><code>transform .12s linear</code></td><td>jehla kompasu kola a padu (<code>CitadelWheel.css:637</code>, <code>:779</code>)</td></tr><tr><td><code>border-color .18s, transform .18s, background .18s</code></td><td>kroky cesty (<code>CitadelWheel.css:106</code>)</td></tr><tr><td><code>width .22s cubic-bezier(.2,.8,.2,1)</code></td><td>rozbalení režimů a akční lišty</td></tr><tr><td><code>width .24s cubic-bezier(.2,.8,.2,1)</code></td><td>rozbalení hledání (<code>CitadelWheel.css:205</code>)</td></tr><tr><td><code>transform .8s ease-out</code></td><td>parallax citadelové scény</td></tr><tr><td><code>filter .75s ease</code></td><td>přepnutí filtru scény</td></tr><tr><td><code>transform 1.2s cubic-bezier(.2,.65,.2,1)</code></td><td>otevření dveří brány (<code>index.css:2419</code>)</td></tr><tr><td><code>transform .14s cubic-bezier(.2,.75,.25,1)</code></td><td>střelka kompasu v <strong>atlasu</strong> (<code>index.css:1216</code>, <code>:1222</code>)</td></tr><tr><td><code>transform .34s cubic-bezier(.22,.61,.36,1)</code></td><td>plynulý posun kamery <strong>atlasu</strong> (<code>.portal-map-world.is-smooth</code>, <code>index.css:5736</code>)</td></tr><tr><td><code>opacity 1.25s ease, filter 1.25s ease, transform 1.25s ease</code></td><td>Welcome → Citadel</td></tr></tbody></table>
+<blockquote><p><code>.34s cubic-bezier(.22,.61,.36,1)</code> <strong>není</strong> časování nabíjení uzlu. Nabíjení uzlu se řídí <code>CHARGE_MS = 1000</code> v JS (§6.4) a samotný uzel má jen <code>transform .18s</code>. Kamera atlasu se hýbe plynule jen při programovém pohybu; přímá manipulace má <code>transition: none</code>.</p></blockquote>
+<h3 id="6-4-animace">6.4 Animace</h3>
+<p><code>src/index.css</code> definuje 72 <code>@keyframes</code>, <code>CitadelWheel.css</code> 3 a <code>DashboardControl.css</code> 1. Mezi klíčové patří:</p>
+<ul><li><strong>Welcome:</strong> <code>welcome-space-drift</code>, <code>welcome-nebula</code>, <code>welcome-celestial</code>, <code>welcome-star-pan</code>, <code>welcome-spark</code>, <code>welcome-title-unified-shine</code>, <code>welcome-enter-unlock</code>, <code>welcome-enter-warm-flow</code>, <code>welcome-enter-shine</code>, <code>welcome-lock-open</code>, <code>sky-light-drift</code>, <code>unlock-orbit-trace</code>, <code>welcome-depart</code>.</li><li><strong>Citadel:</strong> <code>citadel-breathe</code> (28 s, dýchání scény), <code>citadel-rays</code> (20 s, světelné paprsky), <code>cloud-pass</code> (38 s, stín mraků), <code>fog-drift</code> (28 s, mlha), <code>citadel-mote</code> (prach), <code>citadel-bird</code> (50 s, ptáci), <code>gate-aura-breathe</code> (5 s), <code>citadel-wheel-reticle</code> / <code>citadel-wheel-pulse</code> / <code>citadel-wheel-burst</code> (nabíjení a výbuch uzlu).</li><li><strong>Convert / deck:</strong> <code>economy-guide-flow</code>, <code>economy-guide-shine</code>, <code>economy-guide-menu-in</code>, <code>converter-walkthrough-timer</code>, <code>converter-info-fade</code>, <code>converter-info-rise</code>, <code>nd-aurora</code>.</li></ul>
+<p>Nejdůležitější je <strong><code>welcome-enter-unlock</code></strong> — 7,2s smyčka, ve které je tlačítko 92 % času v klidu a kolem 97 % krátce blikne:</p>
+<pre class="code lang-css">@keyframes welcome-enter-unlock { 0%, 92%, 100% { filter: brightness(1); } 97% { filter: brightness(1.28) drop-shadow(0 0 21px #64fff2); } }</pre>
+<p>Díky tomu není potřeba žádný „attention seeker" — stačí jeden záblesk za 7 s.</p>
+<p><strong>Citadel: časování není v CSS.</strong> Nabíjení uzlu a výměna úrovně se řídí konstantami v <code>src/citadelWheel.ts</code>:</p>
+<pre class="code lang-ts">export const CHARGE_MS = 1000;   // podržení = 1 s, stejné pro pilulku i uzel
+export const SWAP_MS   = 460;    // výměna levelu
+export function chargeDuration(reducedMotion: boolean): number {
+  return reducedMotion ? Math.min(400, CHARGE_MS) : CHARGE_MS;
+}</pre>
+<p><code>SIZE_BOOST = 1.2</code> a <code>COMPASS_SCALE = 0.18</code> tamtéž (<code>citadelWheel.ts:26–27</code>).</p>
+<p><strong>Záře v Citadele je CSS, ne SVG.</strong> V žádném souboru kola není <code>&lt;filter&gt;</code> ani <code>feGaussianBlur</code> — veškerý glow dělá <code>drop-shadow(...)</code> a <code>box-shadow</code>, plus <code>filter: blur(30px)</code> na mlze a <code>backdrop-filter: blur(9–17px)</code> na skle. Přerušované linky: <code>stroke-dasharray: 3 8</code> na ose, <code>1px dashed</code> na růžici kompasu a vodicích kruzích padu.</p>
+<h3 id="6-5-prefers-reduced-motion">6.5 <code>prefers-reduced-motion</code></h3>
+<p><strong>Každá dekorativní animace musí mít tuto větev.</strong> Vzor:</p>
+<pre class="code lang-css">@media (prefers-reduced-motion: reduce) {
+  .welcome-screen *, .welcome-screen { animation: none !important; transition: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .citadel-scene *, .citadel-scene *::after { animation: none !important; transition: none !important; }
+  .citadel-plane { transform: translate(-50%, -50%) scale(1.025); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stat-card, .section-scroll-cue, .dashboard-info-panel, .dashboard-toast { animation: none; }
+  .noedis-dashboard { scroll-behavior: auto; }
+}</pre>
+<p><code>prefers-reduced-motion</code> větve jsou v <code>index.css</code> na řádcích 1267, 1272, 1477, 2172, 2436, 2451, 3108, 3372, 4521, 5740, 6994. Nový animovaný prvek = nová větev.</p>
+<hr />
+<h2 id="7-checklist-před-mergem">7. Checklist před mergem</h2>
+<ul><li class="task "><span class="box"></span>Použil jsem existující barvu z §2, ne nový odstín „skoro stejný"?</li><li class="task "><span class="box"></span>Nese prvek <strong>jeden</strong> dominantní akcent?</li><li class="task "><span class="box"></span>Primární vstup v klidu = modro-fialová; oranžová jen při aktivaci?</li><li class="task "><span class="box"></span>Barva tlačítka v Convertu = <code>--converter</code> jeho karty?</li><li class="task "><span class="box"></span><code>GO HOME</code> zůstalo zelené a nezdědilo barvu měny?</li><li class="task "><span class="box"></span>Text na tmavé je světlý; tlumená barva nenese jediný label akce?</li><li class="task "><span class="box"></span>Disabled má <code>opacity</code> a <strong>žádnou</strong> záři ani lift?</li><li class="task "><span class="box"></span>Focus má viditelný obrys, ne jen glow?</li><li class="task "><span class="box"></span>Přidal jsem <code>prefers-reduced-motion</code> větev pro novou animaci?</li><li class="task "><span class="box"></span>Světlé pravidlo má guard <code>:not(:has(.noedis-dashboard))</code>?</li><li class="task "><span class="box"></span>Rádius pochází z §6.1, ne z nové hodnoty?</li><li class="task "><span class="box"></span>Když jsem měnil tvar nebo barvu kola, ověřil jsem hodnoty v <code>citadelWheel.ts</code>, ne v <code>design-system.html</code>?</li></ul>
+<hr />
+<h2 id="8-implementační-odkazy">8. Implementační odkazy</h2>
+<table><thead><tr><th>Oblast</th><th>Soubor</th></tr></thead><tbody><tr><td>Kanonické tokeny, Welcome, Convert</td><td><code>src/index.css</code></td></tr><tr><td>Kolo, brána, pilulky, kompas</td><td><code>src/CitadelWheel.css</code></td></tr><tr><td>Geometrie kola a prstenců</td><td><code>src/citadelWheel.ts</code></td></tr><tr><td>Vykreslení kola</td><td><code>src/CitadelWheel.tsx</code></td></tr><tr><td>Scéna citadely</td><td><code>src/CitadelScene.tsx</code></td></tr><tr><td>Atlas portálů</td><td><code>src/PortalMap.tsx</code></td></tr><tr><td>Deck, <code>--nd-*</code> tokeny, karetní jazyk</td><td><code>src/DashboardControl.css</code></td></tr><tr><td>Markup Welcome</td><td><code>src/Welcome.tsx</code></td></tr><tr><td>Markup Convertu a <code>CONVERTER_INFO</code></td><td><code>src/Space.tsx</code></td></tr><tr><td>Vygenerované vzorky</td><td><code>docs/design-system.html</code></td></tr><tr><td>Krátký handoff</td><td><code>docs/noedis-screen-styles.md</code></td></tr><tr><td>Obrázkové podklady</td><td><code>docs/visual-assets.md</code></td></tr></tbody></table>
+<p>Související dokument: <code>docs/noedis-screen-styles.md</code> (kratší, anglicky, stejné tři obrazovky). Tato příručka je nadmnožina — při rozporu věř <strong>kódu</strong>.</p>
+</div></body></html>

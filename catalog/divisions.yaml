@@ -1,0 +1,24 @@
+# Division catalog — lazy-instantiated teams and specialists
+# WorkforceArchitect uses this to create capabilities on demand
+
+divisions:
+  - department: TECHNOLOGY
+    division: Application Engineering
+    teams:
+      - name: Frontend & PWA
+        specialists:
+          - role: Frontend Engineer
+            tools: [node, pnpm, typescript, react]
+          - role: PWA Specialist
+            tools: [node, pnpm, service-worker]
+      - name: Backend & API
+        specialists:
+          - role: Backend Engineer
+            tools: [node, python, postgres]
+  - department: CREATIVE
+    division: 3D Art
+    teams:
+      - name: Blender Environments
+        specialists:
+          - role: 3D Artist
+            tools: [blender, python, gltf]

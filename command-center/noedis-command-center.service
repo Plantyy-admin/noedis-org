@@ -1,0 +1,20 @@
+[Unit]
+Description=NOEDIS Command Center — PAPERCLIP | GAMEPLAY | DASHBOARD
+Documentation=https://github.com/plantyy/noedis-org
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=plantyy
+WorkingDirectory=/var/home/plantyy/Projects/noedis-org/command-center
+ExecStart=/home/plantyy/.nvm/versions/node/v24.15.0/bin/node /var/home/plantyy/Projects/noedis-org/command-center/server.js
+Restart=on-failure
+RestartSec=5
+Environment="NOEDIS_PORT=3200"
+Environment="PAPERCLIP_URL=http://127.0.0.1:3100"
+Environment="NOEDIS_COMPANY_ID=66147035-5aa3-4612-b445-186ecd6e3169"
+Environment="PATH=/home/plantyy/.nvm/versions/node/v24.15.0/bin:/usr/local/bin:/usr/bin"
+
+[Install]
+WantedBy=default.target

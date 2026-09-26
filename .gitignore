@@ -1,0 +1,44 @@
+# NOEDIS — agent workspace, never commit secrets
+
+# Dependencies
+command-center/node_modules/
+
+# Environment & Secrets
+.env
+.env.*
+*.local
+**/secrets/
+**/master.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+command-center/logs/
+
+# Build
+dist/
+build/
+
+# Paperclip
+.paperclip/
+
+# Agent workspaces (VPS)
+/srv/noedis/workspaces/
+/srv/noedis/artifacts/
+/srv/noedis/backups/
+
+# Temp
+/tmp/noedis-*
+*.tmp
+
+# Systemd user units
+~/.config/systemd/user/noedis-*.service
