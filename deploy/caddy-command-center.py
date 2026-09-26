@@ -68,6 +68,12 @@ COCKPIT_ROUTES = f"""{CC_START}
 \t@noedis_cc_old path /command /command/*
 \tredir @noedis_cc_old / 308
 
+\t# NOTE: the PAPERCLIP tab embeds Paperclip cross-origin from www.noedis.org,
+\t# whose own block grants `frame-ancestors https://noedis.org`. Embedding it
+\t# same-origin under /app/* instead was tried and rejected: Paperclip requests
+\t# its bundle, icons and /sw.js by absolute path, and its service worker would
+\t# then claim the cockpit's whole origin.
+
 \thandle /noedis/* {{
 {auth_directive("\t\t")}\t\treverse_proxy {COCKPIT}
 \t}}
