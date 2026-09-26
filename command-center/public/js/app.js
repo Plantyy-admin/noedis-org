@@ -45,8 +45,10 @@ async function boot() {
 
   await loadClientConfig();
   await loadAll();
-  setInterval(refreshStructure, 6000);
-  setInterval(refreshInboxIfVisible, 15000);
+  // §5.3 auto-refresh: STRUCTURE 5s, DASHBOARD 4s, INBOX 6s.
+  setInterval(refreshStructure, 5000);
+  setInterval(refreshDashboard, 4000);
+  setInterval(refreshInbox, 6000);
 
   showView('structure');
 
@@ -134,18 +136,24 @@ async function refreshInbox() {
     renderInbox({
       issues: state.inbox.issues,
       approvals: state.inbox.approvals,
+      agents: state.agents,
       activity: state.activity,
       errors: { activity: inbox.issuesError },
     });
     updateInboxBadge();
   } catch (err) {
     state.errors.inbox = err.message;
-    renderInbox({ issues: [], approvals: [], activity: [], errors: { activity: err.message } });
+    renderInbox({ issues: [], approvals: [], agents: [], activity: [], errors: { activity: err.message } });
   }
 }
 
-function refreshInboxIfVisible() {
-  if (state.activeView === 'inbox') refreshInbox();
+async function refreshDashboard() {
+  try {
+    state.dashboard = await api.dashboard();
+    if (state.model) renderDashboard(state.model, state.dashboard, state.company);
+  } catch (err) {
+    /* keep the last good numbers */
+  }
 }
 
 /* ── live socket ───────────────────────────────────────────── */

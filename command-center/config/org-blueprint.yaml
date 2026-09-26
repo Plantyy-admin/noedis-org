@@ -8,8 +8,8 @@
 # Runtime invariant: every agent is pi_local -> OpenRouter (OPENROUTER_API_KEY).
 
 $schema: "./org-blueprint.schema.json"
-version: "0.4.0"
-generatedFrom: NOEDIS_AUTONOMOUS_COMPANY_MASTER_v0.3.0.md
+version: "0.5.0"
+generatedFrom: NOEDIS_COMPLETE_SUMMARY_v1.0.md
 updatedAt: "2026-09-26"
 company:
   name: NOEDIS
@@ -21,9 +21,9 @@ runtime:
   credential: OPENROUTER_API_KEY
   model: openrouter/~deepseek/deepseek-flash-latest
   modelNote: Pi exposes models as `<provider>/<model>`; the `~` entries are Pi aliases. `deepseek/deepseek-v4.1-flash` (the previous pin) does not exist in pi 0.87.1 and made every run fail with adapter_failed. The evergreen `-latest` alias is used so a version bump cannot silently break the company again. Override with NOEDIS_MODEL.
-  invariant: Every agent — executive, board, division, team, specialist — runs pi_local through OpenRouter. No codex_local / claude_local / opencode_local.
+  invariant: Every agent runs pi_local through OpenRouter. No codex_local / claude_local / opencode_local.
 roleEnums:
-  _comment: Paperclip validates the agents.role column against a fixed enum. The organisational path (DEPARTMENT / Division / Team) is NOT stored in role — it lives in metadata so the API stays valid. The human-readable designation lives in title.
+  _comment: Paperclip validates agents.role against a fixed enum. The org path (DEPARTMENT / Division / Team) is NOT stored in role - it lives in metadata. The designation lives in title.
   vocabulary:
     - ceo
     - cto
@@ -38,21 +38,18 @@ roleEnums:
     - researcher
     - general
   default: general
-  boardByDept:
-    user: pm
-    technology: cto
-    game-economy: designer
-    creative: designer
+  departmentHeadByDept:
+    vyvoj: engineer
+    infra: devops
+    it: general
     marketing: cmo
-    business-finance: cfo
-    legal-compliance: security
-    quality-release: qa
-    labs-research: researcher
+    legal: general
+    finance: cfo
+    labs: researcher
   byAgentName:
     NOE: ceo
     CODY: cto
     RENE: pm
-    WorkforceArchitect: pm
     Frontend Engineer: engineer
     UI Designer: designer
     Backend Engineer: engineer
@@ -75,7 +72,7 @@ roleEnums:
     Economy Analyst: researcher
     Content Lead: cmo
 reportingLaw:
-  chain: Specialist → Team Leader → Division Lead → Department Board → NOE COMMAND → NOE REPORT → Founder
+  chain: Specialist → Division Commander → Department Head → CODY → NOE → RENE → Founder
   notifications:
     - DONE
     - DECISION
@@ -83,350 +80,267 @@ reportingLaw:
     - RELEASE
 founder:
   title: FOUNDER / HUMAN BOARD
-  interface: NOE COMMAND (input) → NOE REPORT (output)
+  interface: CHAT (input) → INBOX (output)
   seat: human
 executive:
   - key: noe
     name: NOE
-    interface: NOE COMMAND
-    title: Founder & Chief Executive Officer
-    role: NOE COMMAND — only work-intake conversation, delegation, results acceptance
+    interface: Senior Advisor
+    title: Senior Advisor
+    role: Posoudí každý úkol a deleguje CODYmu; přijímá hotové výstupy od RENE
     reportsTo: null
     icon: brain
-    bootstrap: true
-    description: Single entry point for all Founder work intake. Owns delegation to CODY and acceptance of finished packages. Never a routine result channel — results leave via RENE.
+    description: Jediné místo, kam vstupuje zadání od Foundera (přes CHAT). Posuzuje úkoly a předává je CODYmu.
   - key: cody
     name: CODY
     interface: Right Hand
-    title: Chief Operating Officer
-    role: Executive / Right Hand — commands all nine Department Boards
+    title: Right Hand
+    role: Right Hand — řídí všech sedm departmentů
     reportsTo: noe
     icon: zap
-    bootstrap: true
-    description: Operational right hand of NOE. Splits accepted work across departments, resolves cross-department dependencies, escalates what it cannot settle.
+    description: Pravá ruka NOEho. Rozděluje práci agentům v departmentech a řeší závislosti mezi nimi.
   - key: rene
     name: RENE
-    interface: NOE REPORT
-    title: Chief of Staff & Report Channel
-    role: NOE REPORT — only routine result channel, collects outputs, pushes notifications
+    interface: Left Hand
+    title: Left Hand
+    role: Left Hand — sbírá výstupy a reportuje NOEovi
     reportsTo: noe
     icon: mail
-    bootstrap: true
-    description: Left hand of NOE. Collects every finished department output, verifies evidence, and is the only routine path by which a finished package reaches the Founder.
-  - key: workforce
-    name: WorkforceArchitect
-    interface: Capability Broker
-    title: Workforce Architect
-    role: Dynamic agent instantiation — lazy loading of divisions, teams and specialists
-    reportsTo: noe
-    icon: wrench
-    bootstrap: true
-    description: Creates missing organisational capability on demand. Enforces the pi_local + OpenRouter runtime invariant and rejects any generated agent that drifts from it.
+    description: Levá ruka NOEho. Sbírá odevzdané výstupy ze všech departmentů. Jediná rutinní cesta výsledků k Founderovi.
 departments:
-  - key: user
-    name: USER
-    board: USER Board
-    purpose: Own product usefulness, user journeys, UX, accessibility, localization, support and feedback.
-    color: "#00ff88"
-    icon: heart
+  - key: vyvoj
+    name: VÝVOJ
+    fullName: Development
+    head: Frontend Engineer
+    headTitle: Vedoucí oddělení VÝVOJ
+    purpose: Vývoj aplikací a hry — frontend, backend, herní klienti a server.
+    color: "#33ff33"
+    icon: cog
     divisions:
-      - name: Product & Journey
+      - name: Frontend
         teams:
-          - name: Product Architecture
+          - name: Web App
             specialists:
-              - Product Architect
-          - name: Onboarding & UX Research
-            specialists:
-              - UX Researcher
+              - Frontend Engineer
+              - UI Designer
             staffed:
-              - UX Researcher
-      - name: Experience & Accessibility
+              - Frontend Engineer
+              - UI Designer
+          - name: Mobile App
+            specialists:
+              - Mobile Engineer
+      - name: Backend
         teams:
-          - name: UI & Interaction
+          - name: API Services
             specialists:
-              - Interaction Designer
-          - name: Accessibility & Localization
-            specialists:
-              - Accessibility Specialist
-              - Localization Lead
-      - name: Community & Support
-        teams:
-          - name: Support & Feedback
-            specialists:
-              - Support Specialist
+              - Backend Engineer
             staffed:
-              - Support Specialist
-  - key: technology
-    name: TECHNOLOGY
-    board: TECHNOLOGY Board
-    purpose: Own application engineering, game runtime, platform, infrastructure, security and delivery mechanics.
+              - Backend Engineer
+          - name: Database
+            specialists:
+              - Database Engineer
+      - name: Game
+        teams:
+          - name: Game Clients
+            specialists:
+              - Game Designer
+              - "3D Artist"
+            staffed:
+              - Game Designer
+              - "3D Artist"
+          - name: Game Server
+            specialists:
+              - Game Server Engineer
+  - key: infra
+    name: INFRA
+    fullName: Infrastructure
+    head: DevOps Engineer
+    headTitle: Vedoucí oddělení INFRA
+    purpose: Infrastruktura, bezpečnost a QA — provoz, CI/CD, AppSec a testování.
     color: "#00ccff"
-    icon: cpu
+    icon: cloud
     divisions:
-      - name: Application Engineering
+      - name: DevOps
         teams:
-          - name: Frontend & PWA
-            specialists:
-              - Frontend Engineer
-              - UI Designer
-            staffed:
-              - Frontend Engineer
-              - UI Designer
-          - name: Backend & API
-            specialists:
-              - Backend Engineer
-            staffed:
-              - Backend Engineer
-          - name: State & Economy Integration
-            specialists:
-              - Integration Engineer
-      - name: Game Engineering
-        teams:
-          - name: Gameplay Runtime
-            specialists:
-              - Gameplay Engineer
-          - name: "3D Rendering & Physics"
-            specialists:
-              - Rendering Engineer
-          - name: Asset Integration
-            specialists:
-              - Asset Pipeline Engineer
-      - name: Platform Engineering
-        teams:
-          - name: DevOps & VPS
+          - name: Infrastructure
             specialists:
               - DevOps Engineer
             staffed:
               - DevOps Engineer
-          - name: Cloudflare & Edge
-            specialists:
-              - Edge Engineer
-          - name: GitHub & CI/CD
+          - name: CI/CD
             specialists:
               - Release Engineer
-      - name: Security & Identity
+      - name: Security
         teams:
-          - name: Application Security
+          - name: AppSec
             specialists:
               - Security Engineer
             staffed:
               - Security Engineer
-          - name: IAM & Secrets
+          - name: NetworkSec
             specialists:
-              - Identity Engineer
-  - key: game-economy
-    name: GAME & ECONOMY
-    board: GAME & ECONOMY Board
-    purpose: Own gameplay rules, progression, NOEDIS economy, balancing, world systems and live game design.
-    color: "#bb66ff"
-    icon: sparkles
+              - Network Security Engineer
+      - name: QA
+        teams:
+          - name: E2E Testing
+            specialists:
+              - QA Engineer
+              - Release Manager
+            staffed:
+              - QA Engineer
+              - Release Manager
+          - name: Performance
+            specialists:
+              - Performance Engineer
+  - key: it
+    name: IT
+    fullName: Internal IT
+    head: Support Specialist
+    headTitle: Vedoucí oddělení IT
+    purpose: Interní IT — podpora zaměstnanců a správa aktiv.
+    color: "#4488ff"
+    icon: keyboard
     divisions:
-      - name: Game Design
+      - name: Support
         teams:
-          - name: Core Mechanics
+          - name: Employee Support
             specialists:
-              - Game Designer
+              - Support Specialist
             staffed:
-              - Game Designer
-          - name: Combat & Defence
+              - Support Specialist
+          - name: Asset Mgmt
             specialists:
-              - Combat Designer
-      - name: Progression & Economy
-        teams:
-          - name: Token & Credit Economy
-            specialists:
-              - Economy Designer
-          - name: Progression
-            specialists:
-              - Progression Designer
-          - name: Balance & Simulation
-            specialists:
-              - Economy Analyst
-            staffed:
-              - Economy Analyst
-      - name: World Systems & Live Ops
-        teams:
-          - name: Atlas & Citadel Systems
-            specialists:
-              - World Systems Designer
-          - name: Live Ops & Content
-            specialists:
-              - Live Ops Manager
-  - key: creative
-    name: CREATIVE
-    board: CREATIVE Board
-    purpose: Own visual identity, 2D/3D assets, technical art, music, SFX, narrative and product-facing content.
-    color: "#ff3355"
-    icon: star
-    divisions:
-      - name: Brand & Visual
-        teams:
-          - name: Brand & Design System
-            specialists:
-              - Visual Artist
-            staffed:
-              - Visual Artist
-          - name: "2D Assets & Illustration"
-            specialists:
-              - "2D Artist"
-      - name: "3D Art"
-        teams:
-          - name: Blender Environments & Props
-            specialists:
-              - "3D Artist"
-            staffed:
-              - "3D Artist"
-          - name: Technical Art & Optimization
-            specialists:
-              - Technical Artist
-      - name: Audio
-        teams:
-          - name: Music, SFX & Mix
-            specialists:
-              - Audio Engineer
-            staffed:
-              - Audio Engineer
-      - name: Narrative & Content
-        teams:
-          - name: World, Lore & UX Copy
-            specialists:
-              - Narrative Writer
-            staffed:
-              - Narrative Writer
+              - Asset Manager
   - key: marketing
     name: MARKETING
-    board: MARKETING Board
-    purpose: Own external communication, campaigns, social presence, growth, content discovery and partnerships.
+    fullName: Marketing
+    head: Marketing Lead
+    headTitle: Vedoucí oddělení MARKETING
+    purpose: Značka, růst a obsah — vizuální identita, kampaně, akvizice a multimédia.
     color: "#ffb000"
-    icon: globe
+    icon: star
     divisions:
-      - name: Brand Communications
+      - name: Brand
         teams:
+          - name: Visual Identity
+            specialists:
+              - Visual Artist
+            staffed:
+              - Visual Artist
           - name: Campaigns
             specialists:
               - Marketing Lead
             staffed:
               - Marketing Lead
-          - name: Social & PR
-            specialists:
-              - Social Media Manager
-              - PR Lead
       - name: Growth
         teams:
-          - name: SEO & Content
-            specialists:
-              - Content Lead
-            staffed:
-              - Content Lead
-          - name: CRM
-            specialists:
-              - CRM Specialist
-          - name: Acquisition & Partnerships
+          - name: User Acquisition
             specialists:
               - Growth Hacker
             staffed:
               - Growth Hacker
-  - key: business-finance
-    name: BUSINESS & FINANCE
-    board: BUSINESS & FINANCE Board
-    purpose: Own business model, monetization, package design, budgets, forecasts, funding and unit economics.
-    color: "#00ff88"
-    icon: database
-    divisions:
-      - name: Strategy & Monetization
+          - name: SEO
+            specialists:
+              - SEO Specialist
+      - name: Content
         teams:
-          - name: Pricing & Packages
+          - name: Copywriting
             specialists:
-              - Pricing Analyst
-          - name: Business Model & Unit Economics
-            specialists:
-              - Business Analyst
+              - Narrative Writer
             staffed:
-              - Business Analyst
-      - name: Finance & Funding
-        teams:
-          - name: Budget & Forecast
+              - Narrative Writer
+          - name: Multimedia
             specialists:
-              - Finance Analyst
-          - name: Funding & Investor Materials
-            specialists:
-              - Investor Relations Lead
-  - key: legal-compliance
-    name: LEGAL & COMPLIANCE
-    board: LEGAL & COMPLIANCE Board
-    purpose: Own legal research, IP, licensing, privacy, terms, contracts and compliance escalation.
-    color: "#8888ff"
-    icon: shield
+              - Audio Engineer
+            staffed:
+              - Audio Engineer
+  - key: legal
+    name: LEGAL
+    fullName: Legal
+    head: Legal Counsel
+    headTitle: Vedoucí oddělení LEGAL
+    purpose: Právo a shoda — duševní vlastnictví, licence, GDPR a smlouvy.
+    color: "#aa66ff"
+    icon: scales
     divisions:
-      - name: IP & Licensing
+      - name: IP
         teams:
-          - name: Trademark, Domain & IP
+          - name: Trademarks
+            specialists:
+              - Trademark Agent
+          - name: Licensing
             specialists:
               - Legal Counsel
             staffed:
               - Legal Counsel
-          - name: Open Source & Asset Licensing
-            specialists:
-              - Licensing Analyst
-      - name: Privacy & Commercial
+      - name: Compliance
         teams:
-          - name: Privacy, GDPR & Terms
+          - name: GDPR
             specialists:
               - Privacy Counsel
-          - name: Contracts & Compliance Risk
+          - name: Contracts
             specialists:
-              - Compliance Analyst
-  - key: quality-release
-    name: QUALITY & RELEASE
-    board: QUALITY & RELEASE Board
-    purpose: Independently verify correctness, performance, accessibility, releases, documentation and source-of-truth integrity.
-    color: "#00ffee"
-    icon: shield
+              - Contracts Specialist
+  - key: finance
+    name: FINANCE
+    fullName: Finance
+    head: Business Analyst
+    headTitle: Vedoucí oddělení FINANCE
+    purpose: Byznys model, monetizace, rozpočty a reporting.
+    color: "#ff66aa"
+    icon: diamond
     divisions:
-      - name: QA & Verification
+      - name: Strategy
         teams:
-          - name: Automation & E2E
+          - name: Business Model
             specialists:
-              - QA Engineer
+              - Business Analyst
             staffed:
-              - QA Engineer
-          - name: Performance & Accessibility QA
+              - Business Analyst
+          - name: Pricing
             specialists:
-              - Performance QA Engineer
-      - name: Release & Change
+              - Pricing Analyst
+      - name: Operations
         teams:
-          - name: Release Management & Deployment Verification
+          - name: Budget
             specialists:
-              - Release Manager
-            staffed:
-              - Release Manager
-      - name: Knowledge & Canon
-        teams:
-          - name: Spec & Decision Governance
+              - Finance Analyst
+          - name: Reporting
             specialists:
-              - Spec Steward
-          - name: Technical Documentation
-            specialists:
-              - Technical Writer
-  - key: labs-research
-    name: LABS & RESEARCH
-    board: LABS & RESEARCH Board
-    purpose: Explore experimental technologies, agent systems and prototypes without silently changing production canon.
-    color: "#bb66ff"
-    icon: lightbulb
+              - Reporting Analyst
+  - key: labs
+    name: LABS
+    fullName: Labs
+    head: Research Scientist
+    headTitle: Vedoucí oddělení LABS
+    purpose: Výzkum a prototypování — AI/ML, nové technologie, MVP a experimenty.
+    color: "#8800ff"
+    icon: alembic
     divisions:
-      - name: Agent & Automation R&D
+      - name: Research
         teams:
-          - name: Agent Systems & Skills
-            specialists:
-              - Agent Systems Researcher
-      - name: Product & Technology Research
-        teams:
-          - name: Experimental Prototypes & Technology Scouting
+          - name: AI/ML
             specialists:
               - Research Scientist
             staffed:
               - Research Scientist
+          - name: Emerging Tech
+            specialists:
+              - Technology Scout
+      - name: Prototyping
+        teams:
+          - name: MVP
+            specialists:
+              - UX Researcher
+              - Economy Analyst
+              - Content Lead
+            staffed:
+              - UX Researcher
+              - Economy Analyst
+              - Content Lead
+          - name: Experiments
+            specialists:
+              - Prototyper
 secrets:
   - name: OPENROUTER_API_KEY
     purpose: AI model access for every Pi agent

@@ -70,13 +70,13 @@
 
       <section class="struct-block">
         <h2 class="struct-block-title"><span class="bt-mark">▦</span> ORG — VEDENÍ SPOLEČNOSTI</h2>
-        <p class="struct-block-sub">FOUNDER → NOE COMMAND → CODY / RENE / WorkforceArchitect → 9 Department Boards</p>
+        <p class="struct-block-sub">FOUNDER → NOE (Senior Advisor) → CODY (Right Hand) + RENE (Left Hand) → 7 departmentů</p>
         <div id="org-tree" class="org-tree"></div>
       </section>
 
       <section class="struct-block">
         <h2 class="struct-block-title"><span class="bt-mark">▣</span> JEDNOTKY SPOLEČNOSTI</h2>
-        <p class="struct-block-sub">Department → Division → Team → Agents. Neobsazené útvary se instantují líně přes WorkforceArchitect.</p>
+        <p class="struct-block-sub">Department → Division → Team → Agenti. Neobsazené útvary jsou označené jako neinstantované.</p>
         <div id="units-tree" class="units-tree"></div>
       </section>
     </div>
@@ -88,7 +88,8 @@
       <aside class="chat-side">
         <div class="chat-side-head">
           <h3>▮ PŘÍJEMCE</h3>
-          <input id="chat-filter" type="search" placeholder="filtr agentů…" autocomplete="off" />
+          <select id="chat-agent-select" class="chat-agent-select" aria-label="Vyber agenta"></select>
+          <input id="chat-filter" type="search" placeholder="filtr v seznamu…" autocomplete="off" />
         </div>
         <div id="chat-roster" class="chat-roster"></div>
       </aside>
@@ -259,10 +260,10 @@
     <div class="inbox-wrap">
       <header class="struct-head">
         <div class="struct-title">
-          <h1>INBOX <span>· NOE REPORT → FOUNDER</span></h1>
+          <h1>INBOX <span>· RENE → NOE → FOUNDER</span></h1>
           <div class="struct-meta">
-            <span>Kanál reportů: <strong>RENE</strong></span>
-            <span>Události: <strong>DONE · DECISION · RISK · RELEASE</strong></span>
+            <span>Kanál reportů: <strong>RENE (Left Hand)</strong></span>
+            <span>Pouze: <strong>DONE · DECISION · RISK · RELEASE</strong></span>
           </div>
         </div>
         <div class="struct-tools">
@@ -271,15 +272,23 @@
       </header>
       <div class="inbox-grid">
         <div class="dash-card">
-          <div class="card-head">REPORTY / ÚKOLY <span class="card-count" id="inbox-issue-count">0</span></div>
-          <div class="card-body" id="inbox-issues"></div>
+          <div class="card-head"><span class="rep-mark done">✔</span> DONE <span class="card-count" id="inbox-done-count">0</span></div>
+          <div class="card-body" id="inbox-done"></div>
         </div>
         <div class="dash-card">
-          <div class="card-head">SCHVÁLENÍ <span class="card-count" id="inbox-approval-count">0</span></div>
-          <div class="card-body" id="inbox-approvals"></div>
+          <div class="card-head"><span class="rep-mark decision">?</span> DECISION <span class="card-count" id="inbox-decision-count">0</span></div>
+          <div class="card-body" id="inbox-decision"></div>
+        </div>
+        <div class="dash-card">
+          <div class="card-head"><span class="rep-mark risk">!</span> RISK <span class="card-count" id="inbox-risk-count">0</span></div>
+          <div class="card-body" id="inbox-risk"></div>
+        </div>
+        <div class="dash-card">
+          <div class="card-head"><span class="rep-mark release">▲</span> RELEASE <span class="card-count" id="inbox-release-count">0</span></div>
+          <div class="card-body" id="inbox-release"></div>
         </div>
         <div class="dash-card dash-full">
-          <div class="card-head">AKTIVITA</div>
+          <div class="card-head">AKTIVITA — co přišlo od RENE</div>
           <div class="card-body" id="inbox-activity"></div>
         </div>
       </div>

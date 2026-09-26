@@ -2,9 +2,12 @@
 
 **STRUCTURE · CHAT · PAPERCLIP · GAMEPLAY · DASHBOARD · INBOX**
 
-The cockpit for the NOEDIS Autonomous Company. It reads the canonical MASTER org
-blueprint, merges it with the live Paperclip org, and presents the whole company —
-organisation and units — in one interface.
+The cockpit for the NOEDIS Autonomous Company. It reads the canonical org blueprint
+derived from **`NOEDIS_COMPLETE_SUMMARY_v1.0.md`**, merges it with the live Paperclip
+org, and presents the whole company — organisation and units — in one interface.
+
+Live state it reflects: **3 executive agents + 7 departments + 24 agents**,
+one org root (`NOE`), zero runtime drift.
 
 - **Live:** <https://noedis.org/command/>
 - **Full documentation:** [`docs/COMMAND-CENTER.md`](../docs/COMMAND-CENTER.md)
@@ -38,12 +41,11 @@ npm test -- https://noedis.org/command/
 
 The first tab, and the point of the cockpit. It renders two blocks:
 
-1. **ORG — vedení společnosti** — `FOUNDER → NOE COMMAND → CODY / RENE /
-   WorkforceArchitect → 9 Department Boards`, with live status per node.
+1. **ORG — vedení společnosti** — `FOUNDER → NOE (Senior Advisor) → CODY (Right
+   Hand) + RENE (Left Hand) → 7 department heads`, with live status per node.
 2. **JEDNOTKY SPOLEČNOSTI** — `Department → Division → Team → Agent`, expandable and
-   searchable. All 49 teams are listed; the 29 that are not staffed yet are marked
-   `lazy — neinstantováno`, because MASTER §4 says divisions and teams are installed
-   on demand by `WorkforceArchitect` rather than created up front.
+   searchable. All 32 teams are listed; the 16 not yet staffed are marked
+   `neinstantováno`.
 
 Shape comes from `config/org-blueprint.json`; reality (which agents exist, their
 status, their unit) comes from Paperclip. Anything Paperclip has that the blueprint
@@ -60,7 +62,7 @@ command-center/
 │   ├── config.js          env-driven configuration + blueprint loader
 │   └── paperclip.js       authenticated Paperclip API client
 ├── config/
-│   ├── org-blueprint.json canonical MASTER org + model policy
+│   ├── org-blueprint.json canonical org (summary v1.0 §4.1 + §4.3) + model policy
 │   └── org-blueprint.yaml generated readable mirror
 ├── public/
 │   ├── index.html         shell + top navigation
@@ -75,7 +77,9 @@ command-center/
 │       ├── chat.js        CHAT (work intake)
 │       ├── gameplay.js    GAMEPLAY canvas
 │       └── util.js
-└── test/smoke.mjs         Playwright smoke test
+└── test/
+    ├── smoke.mjs          Playwright smoke test (26 assertions)
+    └── shots.mjs          one screenshot per view
 ```
 
 The board API key never reaches the browser: all Paperclip access is proxied through

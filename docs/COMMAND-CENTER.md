@@ -34,12 +34,25 @@ organisation *and* company units in one place.
 
 | View | What it shows |
 |------|---------------|
-| **STRUCTURE** | Two blocks: **ORG — vedení společnosti** (FOUNDER → NOE COMMAND → CODY / RENE / WorkforceArchitect → 9 Department Boards, with live status) and **JEDNOTKY SPOLEČNOSTI** (Department → Division → Team → Agent, expandable, searchable, with vacancies marked as *lazy*). |
-| **CHAT** | Work intake. Paperclip models "talking to an agent" as creating an issue assigned to that agent and waking it, so the panel does exactly that: pick an agent, write the assignment, choose priority, optionally wake. |
+| **STRUCTURE** | Two blocks. **ORG — vedení společnosti**: `FOUNDER → NOE (Senior Advisor) → CODY (Right Hand) + RENE (Left Hand) → 7 department heads`, with live status. **JEDNOTKY SPOLEČNOSTI**: `Department → Division → Team → Agent`, expandable and searchable, with unstaffed teams marked *neinstantováno*. |
+| **CHAT** | Work intake with an **agent dropdown** covering every agent (§5.2). Paperclip models "talking to an agent" as creating an issue assigned to that agent and waking it, so the panel does exactly that: pick an agent, write the assignment, choose priority, optionally wake. |
 | **PAPERCLIP** | The native Paperclip UI embedded in an iframe, plus a link to open it standalone. |
-| **GAMEPLAY** | Canvas station map. Rooms are the nine departments, dots are live agents, crew rail lists the roster. |
+| **GAMEPLAY** | Isometric pixel-art station with **ten floors** — `NOE → CODY → RENE → VÝVOJ → INFRA → IT → MARKETING → LEGAL → FINANCE → LABS` — on a starfield, agents as glowing dots (squares for leads, circles for specialists), 60 fps. The crew rail lists the roster grouped by the same ten floors. |
 | **DASHBOARD** | Agent / task / cost metrics, the **runtime invariant readout** (adapter, provider, model, drift), company record and the full agent roster with each agent's unit. |
-| **INBOX** | Reports and work items, pending approvals, and the activity feed. |
+| **INBOX** | Reports arriving via **RENE → NOE → Founder**, classified into exactly four categories: **DONE · DECISION · RISK · RELEASE**. Anything else is deliberately not shown. |
+
+### §5.3 technical details
+
+| Requirement | Implementation |
+|-------------|----------------|
+| Compact top bar **36 px** | `#top-nav { height: 36px }`, views sized `calc(100vh - 36px)` |
+| Auto-refresh **STRUCTURE 5 s / DASHBOARD 4 s / INBOX 6 s** | one `setInterval` per view in `app.js` |
+| **60 fps** canvas | `requestAnimationFrame` loop in `gameplay.js` |
+| All views read the Paperclip API | proxied through `/noedis/api/*` with the board key added server-side |
+
+The original implementation injected CSS and JS into Paperclip's own `index.html`.
+This cockpit is a standalone app published on a path instead, which keeps Paperclip's
+auth and upgrades untouched — see §1.
 
 ---
 
@@ -69,10 +82,11 @@ periodic polling if the socket drops (the uplink indicator shows `live` vs `poll
 Shape comes from the blueprint; reality comes from Paperclip. The two are merged at
 render time in [`public/js/store.js`](public/js/store.js).
 
-- **Shape —** [`config/org-blueprint.json`](config/org-blueprint.json) is canonical
-  (9 departments, 25 divisions, 49 teams, plus the executive layer and the expected
-  specialists per team). `config/org-blueprint.yaml` is a generated readable mirror;
-  regenerate it with `node deploy/gen-blueprint-yaml.mjs`.
+- **Shape —** [`config/org-blueprint.json`](config/org-blueprint.json) is canonical and
+  derives from `NOEDIS_COMPLETE_SUMMARY_v1.0.md` §4.1 + §4.3: 3 executive agents,
+  **7 departments** (VÝVOJ, INFRA, IT, MARKETING, LEGAL, FINANCE, LABS),
+  16 divisions, 32 teams and exactly **24 agents**. `config/org-blueprint.yaml` is a
+  generated readable mirror; regenerate it with `node deploy/gen-blueprint-yaml.mjs`.
 - **Reality —** Paperclip supplies which agents exist, their status, their unit
   (from `metadata`) and their runtime.
 
@@ -80,13 +94,21 @@ An agent is placed by, in order of trust: `metadata.{dept,division,team}`, then 
 blueprint's `staffed` list, then the live `reports_to` chain. Anything the blueprint
 does not know about is shown under **NEPŘIŘAZENO** rather than silently dropped.
 
+### Department heads, not boards
+
+The summary leads each department with one of the existing agents rather than a
+separate board agent: VÝVOJ → Frontend Engineer, INFRA → DevOps Engineer, IT →
+Support Specialist, MARKETING → Marketing Lead, LEGAL → Legal Counsel, FINANCE →
+Business Analyst, LABS → Research Scientist. Each head reports to CODY (never to
+itself), and the rest of the department reports to its head. The resulting live tree
+is exactly one root: `NOE → CODY → 7 heads → 21 specialists`.
+
 ### Lazy instantiation
 
-MASTER §4 says only the executive and Department Board agents must exist from
-bootstrap; divisions and teams are installed when work first requires them. The
-cockpit therefore renders **all** 49 teams even though only 20 are staffed, marking
-the rest as `lazy — neinstantováno`. Those are the units `WorkforceArchitect` will
-create on demand.
+The summary defines a division/team structure that is broader than the current
+roster, so the cockpit renders **all 32 teams** even though only 16 are staffed,
+marking the rest as `neinstantováno`. Those are the units that would be created when
+work first requires them.
 
 ### `role` is an enum
 
@@ -148,12 +170,16 @@ node deploy/reconcile-org.mjs \
   [--dry-run] [--model 'openrouter/~deepseek/deepseek-flash-latest']
 ```
 
-It creates the executive agents (including `WorkforceArchitect`, with permission to
-create agents) and the nine Department Boards, then places every specialist into its
-MASTER division and team by writing `role`, `title`, `reportsTo` and `metadata`.
+It aligns the three executive agents and the seven department heads, then places
+every specialist into its division and team by writing `role`, `title`, `reportsTo`
+and `metadata`.
 
-Current effect: **24 → 34 agents** (10 created, 24 aligned), one org root (`NOE`),
-zero runtime drift.
+`--prune` additionally deletes agents this reconciler previously managed (they carry
+`metadata.blueprintVersion`) that the current blueprint no longer defines. Agents it
+never touched are never deleted.
+
+Current effect: the live company is exactly **24 agents** with one org root (`NOE`)
+and zero runtime drift; re-running reports `unchanged` for all 24.
 
 One Paperclip quirk to know: `POST /api/agents/{id}/clear-error` only accepts agents
 whose status is already `error`, so a stale message on an idle agent (NOE's
@@ -197,11 +223,12 @@ node command-center/test/smoke.mjs https://noedis.org/command/
 ```
 
 Drives a real browser against a real deployment and asserts 21 properties: the
-structure counters, the org tree, all nine boards, that each of the 21 specialists
-appears in exactly one team and no board leaks into teams, the dashboard roster, the
-`pi_local` runtime readout, the embedded Paperclip iframe, the chat roster, the canvas,
-and that the cockpit itself logs no console errors. Screenshots land in
-`command-center/test/out/`.
+the structure counters, the org tree, the seven departments of §4.1 and their heads,
+that each of the 21 specialists appears in exactly one team and no head leaks into
+teams, the 24-row dashboard roster, the `pi_local` runtime readout, the four INBOX
+categories, the chat dropdown, the ten GAMEPLAY floors in order, the embedded
+Paperclip iframe, and that the cockpit itself logs no console errors. Screenshots land
+in `command-center/test/out/` (`node test/shots.mjs`).
 
 ---
 
