@@ -1,0 +1,415 @@
+{
+  "$schema": "./org-blueprint.schema.json",
+  "version": "0.4.0",
+  "generatedFrom": "NOEDIS_AUTONOMOUS_COMPANY_MASTER_v0.3.0.md",
+  "updatedAt": "2026-09-26",
+
+  "company": {
+    "name": "NOEDIS",
+    "issuePrefix": "NOE",
+    "status": "active"
+  },
+
+  "runtime": {
+    "adapterType": "pi_local",
+    "provider": "openrouter",
+    "credential": "OPENROUTER_API_KEY",
+    "model": "openrouter/~deepseek/deepseek-flash-latest",
+    "modelNote": "Pi exposes models as `<provider>/<model>`; the `~` entries are Pi aliases. `deepseek/deepseek-v4.1-flash` (the previous pin) does not exist in pi 0.87.1 and made every run fail with adapter_failed. The evergreen `-latest` alias is used so a version bump cannot silently break the company again. Override with NOEDIS_MODEL.",
+    "invariant": "Every agent — executive, board, division, team, specialist — runs pi_local through OpenRouter. No codex_local / claude_local / opencode_local."
+  },
+
+  "roleEnums": {
+    "_comment": "Paperclip validates the agents.role column against a fixed enum. The organisational path (DEPARTMENT / Division / Team) is NOT stored in role — it lives in metadata so the API stays valid. The human-readable designation lives in title.",
+    "vocabulary": ["ceo", "cto", "cmo", "cfo", "security", "engineer", "designer", "pm", "qa", "devops", "researcher", "general"],
+    "default": "general",
+    "boardByDept": {
+      "user": "pm",
+      "technology": "cto",
+      "game-economy": "designer",
+      "creative": "designer",
+      "marketing": "cmo",
+      "business-finance": "cfo",
+      "legal-compliance": "security",
+      "quality-release": "qa",
+      "labs-research": "researcher"
+    },
+    "byAgentName": {
+      "NOE": "ceo",
+      "CODY": "cto",
+      "RENE": "pm",
+      "WorkforceArchitect": "pm",
+      "Frontend Engineer": "engineer",
+      "UI Designer": "designer",
+      "Backend Engineer": "engineer",
+      "Game Designer": "designer",
+      "3D Artist": "designer",
+      "DevOps Engineer": "devops",
+      "Security Engineer": "security",
+      "QA Engineer": "qa",
+      "Release Manager": "qa",
+      "Support Specialist": "general",
+      "Marketing Lead": "cmo",
+      "Visual Artist": "designer",
+      "Growth Hacker": "cmo",
+      "Narrative Writer": "designer",
+      "Audio Engineer": "designer",
+      "Legal Counsel": "general",
+      "Business Analyst": "cfo",
+      "Research Scientist": "researcher",
+      "UX Researcher": "researcher",
+      "Economy Analyst": "researcher",
+      "Content Lead": "cmo"
+    }
+  },
+
+  "reportingLaw": {
+    "chain": "Specialist → Team Leader → Division Lead → Department Board → NOE COMMAND → NOE REPORT → Founder",
+    "notifications": ["DONE", "DECISION", "RISK", "RELEASE"]
+  },
+
+  "founder": {
+    "title": "FOUNDER / HUMAN BOARD",
+    "interface": "NOE COMMAND (input) → NOE REPORT (output)",
+    "seat": "human"
+  },
+
+  "executive": [
+    {
+      "key": "noe",
+      "name": "NOE",
+      "interface": "NOE COMMAND",
+      "title": "Founder & Chief Executive Officer",
+      "role": "NOE COMMAND — only work-intake conversation, delegation, results acceptance",
+      "reportsTo": null,
+      "icon": "brain",
+      "bootstrap": true,
+      "description": "Single entry point for all Founder work intake. Owns delegation to CODY and acceptance of finished packages. Never a routine result channel — results leave via RENE."
+    },
+    {
+      "key": "cody",
+      "name": "CODY",
+      "interface": "Right Hand",
+      "title": "Chief Operating Officer",
+      "role": "Executive / Right Hand — commands all nine Department Boards",
+      "reportsTo": "noe",
+      "icon": "zap",
+      "bootstrap": true,
+      "description": "Operational right hand of NOE. Splits accepted work across departments, resolves cross-department dependencies, escalates what it cannot settle."
+    },
+    {
+      "key": "rene",
+      "name": "RENE",
+      "interface": "NOE REPORT",
+      "title": "Chief of Staff & Report Channel",
+      "role": "NOE REPORT — only routine result channel, collects outputs, pushes notifications",
+      "reportsTo": "noe",
+      "icon": "mail",
+      "bootstrap": true,
+      "description": "Left hand of NOE. Collects every finished department output, verifies evidence, and is the only routine path by which a finished package reaches the Founder."
+    },
+    {
+      "key": "workforce",
+      "name": "WorkforceArchitect",
+      "interface": "Capability Broker",
+      "title": "Workforce Architect",
+      "role": "Dynamic agent instantiation — lazy loading of divisions, teams and specialists",
+      "reportsTo": "noe",
+      "icon": "wrench",
+      "bootstrap": true,
+      "description": "Creates missing organisational capability on demand. Enforces the pi_local + OpenRouter runtime invariant and rejects any generated agent that drifts from it."
+    }
+  ],
+
+  "departments": [
+    {
+      "key": "user",
+      "name": "USER",
+      "board": "USER Board",
+      "purpose": "Own product usefulness, user journeys, UX, accessibility, localization, support and feedback.",
+      "color": "#00ff88",
+      "icon": "heart",
+      "divisions": [
+        {
+          "name": "Product & Journey",
+          "teams": [
+            { "name": "Product Architecture", "specialists": ["Product Architect"] },
+            { "name": "Onboarding & UX Research", "specialists": ["UX Researcher"], "staffed": ["UX Researcher"] }
+          ]
+        },
+        {
+          "name": "Experience & Accessibility",
+          "teams": [
+            { "name": "UI & Interaction", "specialists": ["Interaction Designer"] },
+            { "name": "Accessibility & Localization", "specialists": ["Accessibility Specialist", "Localization Lead"] }
+          ]
+        },
+        {
+          "name": "Community & Support",
+          "teams": [
+            { "name": "Support & Feedback", "specialists": ["Support Specialist"], "staffed": ["Support Specialist"] }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "technology",
+      "name": "TECHNOLOGY",
+      "board": "TECHNOLOGY Board",
+      "purpose": "Own application engineering, game runtime, platform, infrastructure, security and delivery mechanics.",
+      "color": "#00ccff",
+      "icon": "cpu",
+      "divisions": [
+        {
+          "name": "Application Engineering",
+          "teams": [
+            { "name": "Frontend & PWA", "specialists": ["Frontend Engineer", "UI Designer"], "staffed": ["Frontend Engineer", "UI Designer"] },
+            { "name": "Backend & API", "specialists": ["Backend Engineer"], "staffed": ["Backend Engineer"] },
+            { "name": "State & Economy Integration", "specialists": ["Integration Engineer"] }
+          ]
+        },
+        {
+          "name": "Game Engineering",
+          "teams": [
+            { "name": "Gameplay Runtime", "specialists": ["Gameplay Engineer"] },
+            { "name": "3D Rendering & Physics", "specialists": ["Rendering Engineer"] },
+            { "name": "Asset Integration", "specialists": ["Asset Pipeline Engineer"] }
+          ]
+        },
+        {
+          "name": "Platform Engineering",
+          "teams": [
+            { "name": "DevOps & VPS", "specialists": ["DevOps Engineer"], "staffed": ["DevOps Engineer"] },
+            { "name": "Cloudflare & Edge", "specialists": ["Edge Engineer"] },
+            { "name": "GitHub & CI/CD", "specialists": ["Release Engineer"] }
+          ]
+        },
+        {
+          "name": "Security & Identity",
+          "teams": [
+            { "name": "Application Security", "specialists": ["Security Engineer"], "staffed": ["Security Engineer"] },
+            { "name": "IAM & Secrets", "specialists": ["Identity Engineer"] }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "game-economy",
+      "name": "GAME & ECONOMY",
+      "board": "GAME & ECONOMY Board",
+      "purpose": "Own gameplay rules, progression, NOEDIS economy, balancing, world systems and live game design.",
+      "color": "#bb66ff",
+      "icon": "sparkles",
+      "divisions": [
+        {
+          "name": "Game Design",
+          "teams": [
+            { "name": "Core Mechanics", "specialists": ["Game Designer"], "staffed": ["Game Designer"] },
+            { "name": "Combat & Defence", "specialists": ["Combat Designer"] }
+          ]
+        },
+        {
+          "name": "Progression & Economy",
+          "teams": [
+            { "name": "Token & Credit Economy", "specialists": ["Economy Designer"] },
+            { "name": "Progression", "specialists": ["Progression Designer"] },
+            { "name": "Balance & Simulation", "specialists": ["Economy Analyst"], "staffed": ["Economy Analyst"] }
+          ]
+        },
+        {
+          "name": "World Systems & Live Ops",
+          "teams": [
+            { "name": "Atlas & Citadel Systems", "specialists": ["World Systems Designer"] },
+            { "name": "Live Ops & Content", "specialists": ["Live Ops Manager"] }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "creative",
+      "name": "CREATIVE",
+      "board": "CREATIVE Board",
+      "purpose": "Own visual identity, 2D/3D assets, technical art, music, SFX, narrative and product-facing content.",
+      "color": "#ff3355",
+      "icon": "star",
+      "divisions": [
+        {
+          "name": "Brand & Visual",
+          "teams": [
+            { "name": "Brand & Design System", "specialists": ["Visual Artist"], "staffed": ["Visual Artist"] },
+            { "name": "2D Assets & Illustration", "specialists": ["2D Artist"] }
+          ]
+        },
+        {
+          "name": "3D Art",
+          "teams": [
+            { "name": "Blender Environments & Props", "specialists": ["3D Artist"], "staffed": ["3D Artist"] },
+            { "name": "Technical Art & Optimization", "specialists": ["Technical Artist"] }
+          ]
+        },
+        {
+          "name": "Audio",
+          "teams": [
+            { "name": "Music, SFX & Mix", "specialists": ["Audio Engineer"], "staffed": ["Audio Engineer"] }
+          ]
+        },
+        {
+          "name": "Narrative & Content",
+          "teams": [
+            { "name": "World, Lore & UX Copy", "specialists": ["Narrative Writer"], "staffed": ["Narrative Writer"] }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "marketing",
+      "name": "MARKETING",
+      "board": "MARKETING Board",
+      "purpose": "Own external communication, campaigns, social presence, growth, content discovery and partnerships.",
+      "color": "#ffb000",
+      "icon": "globe",
+      "divisions": [
+        {
+          "name": "Brand Communications",
+          "teams": [
+            { "name": "Campaigns", "specialists": ["Marketing Lead"], "staffed": ["Marketing Lead"] },
+            { "name": "Social & PR", "specialists": ["Social Media Manager", "PR Lead"] }
+          ]
+        },
+        {
+          "name": "Growth",
+          "teams": [
+            { "name": "SEO & Content", "specialists": ["Content Lead"], "staffed": ["Content Lead"] },
+            { "name": "CRM", "specialists": ["CRM Specialist"] },
+            { "name": "Acquisition & Partnerships", "specialists": ["Growth Hacker"], "staffed": ["Growth Hacker"] }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "business-finance",
+      "name": "BUSINESS & FINANCE",
+      "board": "BUSINESS & FINANCE Board",
+      "purpose": "Own business model, monetization, package design, budgets, forecasts, funding and unit economics.",
+      "color": "#00ff88",
+      "icon": "database",
+      "divisions": [
+        {
+          "name": "Strategy & Monetization",
+          "teams": [
+            { "name": "Pricing & Packages", "specialists": ["Pricing Analyst"] },
+            { "name": "Business Model & Unit Economics", "specialists": ["Business Analyst"], "staffed": ["Business Analyst"] }
+          ]
+        },
+        {
+          "name": "Finance & Funding",
+          "teams": [
+            { "name": "Budget & Forecast", "specialists": ["Finance Analyst"] },
+            { "name": "Funding & Investor Materials", "specialists": ["Investor Relations Lead"] }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "legal-compliance",
+      "name": "LEGAL & COMPLIANCE",
+      "board": "LEGAL & COMPLIANCE Board",
+      "purpose": "Own legal research, IP, licensing, privacy, terms, contracts and compliance escalation.",
+      "color": "#8888ff",
+      "icon": "shield",
+      "divisions": [
+        {
+          "name": "IP & Licensing",
+          "teams": [
+            { "name": "Trademark, Domain & IP", "specialists": ["Legal Counsel"], "staffed": ["Legal Counsel"] },
+            { "name": "Open Source & Asset Licensing", "specialists": ["Licensing Analyst"] }
+          ]
+        },
+        {
+          "name": "Privacy & Commercial",
+          "teams": [
+            { "name": "Privacy, GDPR & Terms", "specialists": ["Privacy Counsel"] },
+            { "name": "Contracts & Compliance Risk", "specialists": ["Compliance Analyst"] }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "quality-release",
+      "name": "QUALITY & RELEASE",
+      "board": "QUALITY & RELEASE Board",
+      "purpose": "Independently verify correctness, performance, accessibility, releases, documentation and source-of-truth integrity.",
+      "color": "#00ffee",
+      "icon": "shield",
+      "divisions": [
+        {
+          "name": "QA & Verification",
+          "teams": [
+            { "name": "Automation & E2E", "specialists": ["QA Engineer"], "staffed": ["QA Engineer"] },
+            { "name": "Performance & Accessibility QA", "specialists": ["Performance QA Engineer"] }
+          ]
+        },
+        {
+          "name": "Release & Change",
+          "teams": [
+            { "name": "Release Management & Deployment Verification", "specialists": ["Release Manager"], "staffed": ["Release Manager"] }
+          ]
+        },
+        {
+          "name": "Knowledge & Canon",
+          "teams": [
+            { "name": "Spec & Decision Governance", "specialists": ["Spec Steward"] },
+            { "name": "Technical Documentation", "specialists": ["Technical Writer"] }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "labs-research",
+      "name": "LABS & RESEARCH",
+      "board": "LABS & RESEARCH Board",
+      "purpose": "Explore experimental technologies, agent systems and prototypes without silently changing production canon.",
+      "color": "#bb66ff",
+      "icon": "lightbulb",
+      "divisions": [
+        {
+          "name": "Agent & Automation R&D",
+          "teams": [
+            { "name": "Agent Systems & Skills", "specialists": ["Agent Systems Researcher"] }
+          ]
+        },
+        {
+          "name": "Product & Technology Research",
+          "teams": [
+            { "name": "Experimental Prototypes & Technology Scouting", "specialists": ["Research Scientist"], "staffed": ["Research Scientist"] }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "secrets": [
+    { "name": "OPENROUTER_API_KEY", "purpose": "AI model access for every Pi agent", "scope": "company" },
+    { "name": "GITHUB_CREDENTIAL", "purpose": "Repository operations", "scope": "company" },
+    { "name": "CLOUDFLARE_CREDENTIAL", "purpose": "DNS / edge / CDN", "scope": "company" },
+    { "name": "NTFY_CREDENTIAL", "purpose": "Mobile push notifications", "scope": "company" }
+  ],
+
+  "mobile": {
+    "input": "Paperclip Agent Chat (mobile browser) — phone dictation",
+    "output": "ntfy push → https://notify.noedis.org",
+    "voice": "Phone dictation (native)"
+  },
+
+  "vps": {
+    "ip": "76.13.154.124",
+    "sshPort": 501,
+    "sshUser": "vpsadmin",
+    "paperclipPort": 3100,
+    "commandCenterPort": 3200,
+    "workspaces": "/srv/noedis/workspaces/",
+    "artifacts": "/srv/noedis/artifacts/",
+    "company": "/srv/noedis/company/",
+    "backups": "/srv/noedis/backups/"
+  }
+}
