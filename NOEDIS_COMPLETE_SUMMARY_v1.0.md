@@ -321,9 +321,9 @@ Paperclip
 
 | Údaj | Hodnota |
 |------|---------|
-| Board API Key | `REDACTED` |
-| OpenRouter Key | `REDACTED` |
-| Cloudflare Token | `REDACTED` |
+| Board API Key | `pcp_board_...` (v Paperclip secrets) |
+| OpenRouter Key | `sk-or-v1-...` (v Paperclip secrets) |
+| Cloudflare Token | `cfut_...` (v Paperclip secrets) |
 
 ---
 
