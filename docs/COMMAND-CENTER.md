@@ -3,27 +3,50 @@
 The cockpit for the NOEDIS Autonomous Company: one interface on top of Paperclip that
 shows the whole organisation, the live agent roster, work intake and the report inbox.
 
-- **Cockpit:** <https://noedis.org/command/>
-- **Paperclip (native UI, unchanged):** <https://noedis.org/>
+- **Cockpit:** <https://noedis.org/> — this is what `noedis.org` opens
+- **Paperclip (native UI):** <https://www.noedis.org/>
 - **Source of truth:** [`NOEDIS_AUTONOMOUS_COMPANY_MASTER_v0.3.0.md`](../NOEDIS_AUTONOMOUS_COMPANY_MASTER_v0.3.0.md)
 
 ---
 
-## 1. Why the cockpit is on a path
+## 1. Two hostnames, one purpose
 
-Paperclip's authenticated mode pins its auth base URL to `https://noedis.org`.
-Taking over that host would redirect logins into the cockpit and break the founder's
-existing session. So Paperclip keeps the root and its own paths, and the cockpit is
-published one level down:
+`noedis.org` opens the **cockpit**. Paperclip's native UI lives on
+`www.noedis.org`. Both resolve to the same VPS; no DNS change was needed because
+`www.noedis.org` already pointed there and Caddy issues its certificate on demand.
 
-| URL | Serves | Notes |
-|-----|--------|-------|
-| `https://noedis.org/` | Paperclip UI | untouched, auth base URL intact |
-| `https://noedis.org/api/*` | Paperclip API | untouched |
-| `https://noedis.org/command/` | **Command Center** | the cockpit |
-| `https://noedis.org/noedis/*` | **Command Center API + WS** | server-side Paperclip access |
+| URL | Serves |
+|-----|--------|
+| `https://noedis.org/` | **Command Center** (the cockpit) |
+| `https://noedis.org/noedis/*` | cockpit API + WebSocket |
+| `https://noedis.org/js/*`, `/css/*` | cockpit assets |
+| `https://noedis.org/command*` | 308 → `/` (the cockpit's original URL) |
+| `https://www.noedis.org/` | Paperclip UI and its `/api/*`, `/assets/*` |
 
-No DNS change and no new TLS certificate were required.
+### Why Paperclip moved
+
+Paperclip was configured with `auth.customBaseUrl = https://noedis.org`. Once the
+cockpit took that root, better-auth would have redirected logins back into the
+cockpit. So Paperclip's canonical host was moved to `www.noedis.org` — config,
+allowed hostnames and Caddy together:
+
+```jsonc
+// ~/.paperclip/instances/default/config.json
+"auth":          { "customBaseUrl": "https://www.noedis.org",
+                   "publicBaseUrl": "https://www.noedis.org" },
+"server":        { "allowedHostnames": ["localhost", "noedis.org", "www.noedis.org"] }
+```
+
+Verified: `POST https://www.noedis.org/api/auth/sign-in/email` answers with a
+normal `401 INVALID_EMAIL_OR_PASSWORD`, not an origin/CSRF rejection.
+
+The `www` block sets `Content-Security-Policy: frame-ancestors https://noedis.org`
+so only the cockpit may embed Paperclip — every other site is refused, and no
+`X-Frame-Options` header is sent (it would block the cockpit's own iframe).
+
+The cockpit's PAPERCLIP tab therefore embeds `https://www.noedis.org`
+(`NOEDIS_PAPERCLIP_UI_URL`). Pointing it at `noedis.org` would nest the cockpit
+inside itself.
 
 ### Paperclip's shell is clean
 
@@ -89,7 +112,7 @@ auth and upgrades untouched — see §1.
 ## 3. Architecture
 
 ```
-browser ──▶ https://noedis.org/command/     (static UI)
+browser ──▶ https://noedis.org/              (static UI)
         └─▶ https://noedis.org/noedis/api/* (JSON)  ──▶ Command Center (Express, 127.0.0.1:3200)
         └─▶ wss://noedis.org/noedis/ws              ──▶        │
                                                                 │  Bearer pcp_board_…
@@ -249,7 +272,7 @@ cd command-center && npm install && npm start
 ## 8. Verifying
 
 ```bash
-node command-center/test/smoke.mjs https://noedis.org/command/
+node command-center/test/smoke.mjs https://noedis.org
 ```
 
 Drives a real browser against a real deployment and asserts 21 properties: the

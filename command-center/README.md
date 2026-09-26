@@ -9,7 +9,7 @@ org, and presents the whole company — organisation and units — in one interf
 Live state it reflects: **3 executive agents + 7 departments + 24 agents**,
 one org root (`NOE`), zero runtime drift.
 
-- **Live:** <https://noedis.org/command/>
+- **Live:** <https://noedis.org/>  (Paperclip: <https://www.noedis.org/>)
 - **Full documentation:** [`docs/COMMAND-CENTER.md`](../docs/COMMAND-CENTER.md)
 
 ---
@@ -32,7 +32,7 @@ ssh -N -L 127.0.0.1:13100:127.0.0.1:3100 -p 501 vpsadmin@76.13.154.124 &
 Verify a running instance in a real browser (21 assertions + screenshots):
 
 ```bash
-npm test -- https://noedis.org/command/
+npm test -- https://noedis.org
 ```
 
 ---
