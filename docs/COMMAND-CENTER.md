@@ -25,6 +25,36 @@ published one level down:
 
 No DNS change and no new TLS certificate were required.
 
+### Paperclip's shell is clean
+
+An earlier deployment injected a second navigation — a fixed 36 px bar with
+CHAT / PAPERCLIP / GAMEPLAY / STRUCTURE / INBOX overlays — straight into
+Paperclip's own UI shell:
+
+```
+/usr/lib/node_modules/paperclipai/node_modules/@paperclipai/server/ui-dist/index.html
+```
+
+Those views now live here, at `/command/`, so that injection was removed: it left
+every page of the native Paperclip UI carrying a duplicate, conflicting menu.
+The file went from 18 918 to 2 271 bytes and now contains only the original
+Paperclip shell (`#root` plus its two asset tags).
+
+Re-run the removal at any time with:
+
+```bash
+sudo python3 deploy/remove-paperclip-injection.py
+sudo systemctl restart noedis-paperclip
+```
+
+It is idempotent (on a clean file it prints `clean already`) and writes a
+timestamped backup first.
+
+> **Do not run the legacy injection scripts** left in the repository root
+> (`inject_nav.sh`, `premium-inject.js`, `noedis-inject.js`, `rebuild_gameplay.py`).
+> They recreate exactly this bar. They are untracked leftovers from the previous
+> deployment, not part of the current build.
+
 ---
 
 ## 2. Views
