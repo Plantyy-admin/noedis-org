@@ -3,7 +3,7 @@
 set -e
 
 API="http://127.0.0.1:3100"
-BOARD_KEY="REDACTED"
+BOARD_KEY="${PAPERCLIP_API_KEY:?set PAPERCLIP_API_KEY}"
 COMPANY_ID="8b5aa752-5199-4f51-9a9c-817647ef1aae"
 
 echo "========================================"

@@ -218,8 +218,9 @@ and that the cockpit itself logs no console errors. Screenshots land in
 | `NOEDIS_POLL_MS` | `4000` | live polling interval |
 
 `command-center/.env` is git-ignored and holds the board key in production. Note that
-**the board key is currently still the default `REDACTED`** — rotating
-it is worthwhile, but it must be rotated in Paperclip and `command-center/.env` together.
+**the board key is still a weak, human-chosen default** — rotating it is worthwhile, but it
+must be rotated in Paperclip and `command-center/.env` together. It is deliberately not
+reproduced in this repository.
 
 ---
 

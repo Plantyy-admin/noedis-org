@@ -306,7 +306,7 @@ Paperclip
 |------|---------|
 | URL | `https://noedis.org` |
 | Email | `lukas.plant1010@gmail.com` |
-| Heslo | `REDACTED` |
+| Heslo | _(odstraněno — viz bezpečnostní poznámka níže)_ |
 
 ### 9.2 VPS
 
@@ -315,7 +315,7 @@ Paperclip
 | IP | `76.13.154.124` |
 | SSH port | `501` |
 | User | `vpsadmin` |
-| Password | `REDACTED` |
+| Password | _(odstraněno — viz bezpečnostní poznámka níže)_ |
 
 ### 9.3 API
 
@@ -381,7 +381,8 @@ Paperclip
 
 ```bash
 # SSH na VPS
-sshpass -p 'REDACTED' ssh -p 501 vpsadmin@76.13.154.124
+# heslo načti z prostředí, nikdy ho neukládej do repozitáře
+sshpass -p "$VPS_PASS" ssh -p 501 vpsadmin@76.13.154.124
 
 # Restart Paperclip
 sudo systemctl restart noedis-paperclip
@@ -411,3 +412,17 @@ ssh -L 3100:127.0.0.1:3100 vpsadmin@76.13.154.124 -p 501
 ---
 
 *Vygenerováno z kompletní historie deploymentu NOEDIS Autonomous Company OS.*
+
+---
+
+## 15. BEZPEČNOSTNÍ POZNÁMKA
+
+Tento dokument dříve obsahoval živá hesla (Paperclip i SSH) a board API klíč.
+Byly z něj odstraněny. **Předpokládej, že unikla, a rotuj je:**
+
+1. heslo Paperclip účtu `lukas.plant1010@gmail.com`,
+2. SSH heslo uživatele `vpsadmin` (nebo přejdi na SSH klíče),
+3. board API klíč v Paperclipu a v `/srv/noedis/command-center/.env`.
+
+Tajné údaje patří do prostředí nebo do git-ignorovaných souborů
+(`deploy/.vps.env`, `command-center/.env`), nikdy do repozitáře.
