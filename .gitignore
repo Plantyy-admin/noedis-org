@@ -57,3 +57,4 @@ command-center/test/out/
 deploy/.vps.env
 !.vps.env.example
 !deploy/.vps.env.example
+deploy/.redact-patterns
