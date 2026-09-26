@@ -44,7 +44,9 @@ function matches(...fields) {
 /* ── header counters ─────────────────────────────────────────── */
 
 export function renderStructureChrome(model) {
-  setText('struct-source', `· MASTER ${model.blueprintVersion}`);
+  // Name the document the structure actually comes from, not a version number.
+  const src = String(model.source || '').replace(/^.*\//, '').replace(/\.md$/, '');
+  setText('struct-source', src ? `· ${src}` : `· blueprint ${model.blueprintVersion}`);
   const c = model.counts;
   const meta = document.getElementById('struct-meta');
   if (!meta) return;
@@ -69,12 +71,14 @@ export function renderOrg(model) {
   const exec = model.executive;
   const noe = exec.find((e) => e.key === 'noe');
   const rest = exec.filter((e) => e.key !== 'noe');
-  const boards = model.departments.map((d) => ({
-    name: d.board,
+  // The nine-floor picture of the summary: seven departments, each led by one
+  // of the existing agents (its department head).
+  const heads = model.departments.map((d) => ({
+    name: d.head,
     dept: d.name,
     color: d.color,
     icon: d.icon,
-    agent: d.boardAgent,
+    agent: d.headAgent,
   }));
 
   const card = (title, sub, status, cls, color) => `
@@ -117,9 +121,9 @@ export function renderOrg(model) {
 
       <div class="org-connector"><span class="org-vline"></span><span class="org-hline"></span></div>
 
-      <div class="org-boards-label">DEPARTMENT BOARDS · 9</div>
+      <div class="org-boards-label">DEPARTMENT HEADS · ${heads.length}</div>
       <div class="org-boards">
-        ${boards
+        ${heads
           .map((b) => `
             <div class="org-board${b.agent ? '' : ' missing'}" style="--c:${esc(b.color)}">
               <div class="org-board-top">
@@ -188,7 +192,7 @@ export function renderUnits(model) {
 function renderDepartment(dept) {
   const key = `dept:${dept.key}`;
   const open = isOpen(key, true);
-  const hit = matches(dept.name, dept.purpose, dept.board) || searchQuery === '';
+  const hit = matches(dept.name, dept.purpose, dept.head) || searchQuery === '';
   const childHit = dept.divisions.some(
     (v) =>
       matches(v.name, dept.name) ||
@@ -208,8 +212,8 @@ function renderDepartment(dept) {
         <span class="unit-dept-purpose">${esc(dept.purpose || '')}</span>
         <span class="unit-dept-badge">${dept.divisions.length} divize · ${teamCount} týmů · ${staffed} obsazeno</span>
         <span class="unit-dept-board">
-          <span class="org-dot ${statusClass(dept.boardAgent?.status)}"></span>
-          ${esc(dept.boardAgent?.name || dept.board)}
+          <span class="org-dot ${statusClass(dept.headAgent?.status)}"></span>
+          ${esc(dept.headAgent?.name || dept.head)}
         </span>
       </button>
       <div class="unit-dept-body${open ? ' open' : ''}">

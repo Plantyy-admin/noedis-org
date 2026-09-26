@@ -1,22 +1,44 @@
 /* ══════════════════════════════════════════════════════════════
-   GAMEPLAY panel — isometric-ish station map driven by the real org.
-   Rooms are the nine departments; dots are live agents.
+   GAMEPLAY panel — §5.2 of the summary.
+
+   "Izometrická pixel-art stanice s 10 patry
+    (NOE → CODY → RENE → VÝVOJ → INFRA → IT → MARKETING → LEGAL →
+     FINANCE → LABS). Agent dots s glow efektem, starfield pozadí, 60fps."
+
+   Ten floors, top to bottom. Each floor is an isometric slab; the agents
+   that belong to it sit on the front edge with a status glow.
    ══════════════════════════════════════════════════════════════ */
 
-import { statusClass, esc, designation } from './util.js';
+import { statusClass, esc } from './util.js';
 
 let canvas = null;
 let ctx = null;
 let raf = null;
 let model = null;
 let t = 0;
+let stars = [];
+let starsFor = { w: 0, h: 0 };
 
-const COLORS = {
+const GLOW = {
   running: '#00ff88',
   paused: '#ffb000',
   error: '#ff3355',
   idle: '#555577',
 };
+
+/* The ten floors, in the summary's order. */
+const FLOOR_PLAN = [
+  { key: 'noe', label: 'NOE', kind: 'exec', color: '#ffb000' },
+  { key: 'cody', label: 'CODY', kind: 'exec', color: '#00ccff' },
+  { key: 'rene', label: 'RENE', kind: 'exec', color: '#bb66ff' },
+  { key: 'vyvoj', label: 'VÝVOJ', kind: 'dept' },
+  { key: 'infra', label: 'INFRA', kind: 'dept' },
+  { key: 'it', label: 'IT', kind: 'dept' },
+  { key: 'marketing', label: 'MARKETING', kind: 'dept' },
+  { key: 'legal', label: 'LEGAL', kind: 'dept' },
+  { key: 'finance', label: 'FINANCE', kind: 'dept' },
+  { key: 'labs', label: 'LABS', kind: 'dept' },
+];
 
 export function initGameplay() {
   canvas = document.getElementById('station-canvas');
@@ -55,141 +77,215 @@ function resize() {
   canvas.style.width = `${rect.width}px`;
   canvas.style.height = `${rect.height}px`;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  starsFor = { w: 0, h: 0 };
 }
 
-/** Grid of department rooms laid out around a central command hub. */
-function layout(w, h) {
-  const depts = model?.departments || [];
-  const cx = w / 2;
-  const cy = h / 2;
-  const radius = Math.max(150, Math.min(w, h) * 0.34);
-  const hub = { x: cx - 70, y: cy - 34, w: 140, h: 68, label: 'NOE COMMAND', color: '#ffb000' };
+/* ── starfield ───────────────────────────────────────────────── */
 
-  const rooms = depts.map((d, i) => {
-    const angle = (i / Math.max(1, depts.length)) * Math.PI * 2 - Math.PI / 2;
-    const rw = 150;
-    const rh = 66;
-    return {
-      x: cx + Math.cos(angle) * radius - rw / 2,
-      y: cy + Math.sin(angle) * radius - rh / 2,
-      w: rw,
-      h: rh,
-      label: d.name,
-      color: d.color || '#00ccff',
-      dept: d,
-      angle,
-    };
-  });
+function ensureStars(w, h) {
+  if (starsFor.w === w && starsFor.h === h && stars.length) return;
+  const count = Math.round((w * h) / 5200);
+  stars = Array.from({ length: count }, () => ({
+    x: Math.random() * w,
+    y: Math.random() * h,
+    r: Math.random() < 0.85 ? 1 : 2,
+    a: 0.18 + Math.random() * 0.55,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.4 + Math.random() * 1.4,
+  }));
+  starsFor = { w, h };
+}
 
-  return { hub, rooms, cx, cy };
+function drawStarfield(w, h) {
+  ensureStars(w, h);
+  for (const s of stars) {
+    const twinkle = 0.65 + 0.35 * Math.sin(t * s.speed + s.phase);
+    ctx.globalAlpha = s.a * twinkle;
+    ctx.fillStyle = '#cdd6ff';
+    ctx.fillRect(s.x, s.y, s.r, s.r);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ── floors ──────────────────────────────────────────────────── */
+
+function floorRoster(plan) {
+  if (!model) return [];
+  if (plan.kind === 'exec') {
+    return model.executive
+      .filter((e) => e.key === plan.key)
+      .map((e) => ({ name: e.name, status: e.status, role: e.interface || '', level: 'executive' }));
+  }
+  const dept = model.departments.find((d) => d.key === plan.key);
+  if (!dept) return [];
+  const out = [];
+  if (dept.headAgent) {
+    out.push({
+      name: dept.headAgent.name,
+      status: dept.headAgent.status,
+      role: dept.headTitle || 'Vedoucí oddělení',
+      level: 'head',
+    });
+  }
+  for (const div of dept.divisions) {
+    for (const team of div.teams) {
+      for (const m of team.members) {
+        if (dept.headAgent && m.id === dept.headAgent.id) continue;
+        out.push({ name: m.name, status: m.status, role: `${div.name} / ${team.name}`, level: 'specialist' });
+      }
+    }
+  }
+  return out;
 }
 
 function loop() {
   if (!ctx || !canvas) return;
   const w = canvas.width / (window.devicePixelRatio || 1);
   const h = canvas.height / (window.devicePixelRatio || 1);
-  t += 0.016;
+  t += 1 / 60;
 
-  ctx.fillStyle = '#0a0a0f';
+  ctx.fillStyle = '#07070f';
   ctx.fillRect(0, 0, w, h);
+  drawStarfield(w, h);
 
-  // grid
-  ctx.strokeStyle = '#12122a';
-  ctx.lineWidth = 1;
-  const g = 48;
-  for (let x = 0; x <= w; x += g) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-  }
-  for (let y = 0; y <= h; y += g) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-  }
+  const floorCount = FLOOR_PLAN.length;
+  const slabW = Math.min(w * 0.46, 520);
+  // Depth is kept shallow on purpose: the front-to-back vertical extent must
+  // stay under the floor height, otherwise upper slabs hide the agents below.
+  const slabD = slabW * 0.26;
+  const tw = slabW;
+  const th = tw;
+  const fh = Math.min((h * 0.82) / floorCount, 58);
 
-  const { hub, rooms, cx, cy } = layout(w, h);
+  const originX = w / 2 - slabW * 0.20;
+  const originY = h * 0.5 + (floorCount * fh) / 2 - fh * 2.4;
 
-  // corridors
-  ctx.setLineDash([6, 8]);
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = '#1a1a3a';
-  for (const room of rooms) {
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(room.x + room.w / 2, room.y + room.h / 2);
-    ctx.stroke();
-  }
-  ctx.setLineDash([]);
+  const iso = (x, y, z) => ({
+    X: originX + ((x - y) / slabW) * (tw / 2),
+    Y: originY + ((x + y) / slabW) * (th / 4) - z * fh,
+  });
 
-  // traffic pulses when anything is running
-  const running = (model?.agents || []).some((a) => ['running', 'active', 'working'].includes(String(a.status).toLowerCase()));
-  if (running) {
-    ctx.fillStyle = '#00ff8899';
-    for (let i = 0; i < rooms.length; i++) {
-      const room = rooms[i];
-      const p = ((t * 0.35 + i * 0.11) % 1);
-      const px = cx + (room.x + room.w / 2 - cx) * p;
-      const py = cy + (room.y + room.h / 2 - cy) * p;
-      ctx.beginPath();
-      ctx.arc(px, py, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  drawRoom(hub.x, hub.y, hub.w, hub.h, '#ffb000', hub.label, 0, null);
-
-  for (const room of rooms) {
-    const statuses = collectStatuses(room.dept);
-    drawRoom(room.x, room.y, room.w, room.h, room.color, room.label, statuses.length, statuses);
+  for (let i = 0; i < floorCount; i++) {
+    const plan = FLOOR_PLAN[i];
+    const dept = plan.kind === 'dept' ? model?.departments.find((d) => d.key === plan.key) : null;
+    const color = plan.color || dept?.color || '#00ccff';
+    drawSlab(iso, slabW, slabD, floorCount - 1 - i, color, plan, dept);
   }
 
   raf = requestAnimationFrame(loop);
 }
 
-function collectStatuses(dept) {
-  const out = [];
-  for (const v of dept.divisions) {
-    for (const tm of v.teams) {
-      for (const m of tm.members) out.push(statusClass(m.status));
-    }
-  }
-  return out;
-}
+function drawSlab(iso, W, D, z, color, plan, dept) {
+  const a = iso(0, 0, z);
+  const b = iso(W, 0, z);
+  const c = iso(W, D, z);
+  const d = iso(0, D, z);
+  const drop = 12;
 
-function drawRoom(x, y, w, h, color, label, dotCount, statuses) {
-  ctx.fillStyle = `${color}14`;
-  ctx.fillRect(x, y, w, h);
-  ctx.strokeStyle = `${color}66`;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(x, y, w, h);
+  ctx.fillStyle = shade(color, 0.17);
+  ctx.beginPath();
+  ctx.moveTo(a.X, a.Y); ctx.lineTo(d.X, d.Y); ctx.lineTo(d.X, d.Y + drop); ctx.lineTo(a.X, a.Y + drop);
+  ctx.closePath(); ctx.fill();
 
-  ctx.fillStyle = `${color}09`;
-  ctx.fillRect(x + 4, y + 4, w - 8, 1);
+  ctx.fillStyle = shade(color, 0.10);
+  ctx.beginPath();
+  ctx.moveTo(d.X, d.Y); ctx.lineTo(c.X, c.Y); ctx.lineTo(c.X, c.Y + drop); ctx.lineTo(d.X, d.Y + drop);
+  ctx.closePath(); ctx.fill();
 
-  ctx.fillStyle = `${color}dd`;
-  ctx.font = '13px "VT323", monospace';
-  ctx.textAlign = 'center';
+  ctx.fillStyle = shade(color, 0.32);
+  ctx.beginPath();
+  ctx.moveTo(a.X, a.Y); ctx.lineTo(b.X, b.Y); ctx.lineTo(c.X, c.Y); ctx.lineTo(d.X, d.Y);
+  ctx.closePath(); ctx.fill();
+
+  ctx.strokeStyle = withAlpha(color, 0.85);
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = withAlpha(color, 0.95);
+  ctx.font = '16px "VT323", monospace';
+  ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
-  ctx.fillText(label, x + w / 2, y + h / 2 - 6);
+  ctx.fillText(plan.label, d.X - 14, d.Y + 4);
 
-  if (dotCount > 0) {
+  if (dept) {
+    ctx.fillStyle = 'rgba(255,255,255,0.30)';
     ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#777799';
-    ctx.fillText(`${dotCount} agentů`, x + w / 2, y + h / 2 + 12);
+    ctx.fillText(`${dept.divisions.length} divize · ${dept.agentCount} agentů`, d.X - 14, d.Y + 19);
   }
 
-  // status dots along the bottom edge
-  const list = statuses || [];
-  const gap = 9;
-  const startX = x + w / 2 - ((list.length - 1) * gap) / 2;
-  list.forEach((s, i) => {
-    const px = startX + i * gap;
-    const py = y + h - 7;
-    const c = COLORS[s] || COLORS.idle;
-    const pulse = s === 'running' ? Math.sin(t * 3 + i) * 1.5 + 3 : 2.2;
-    ctx.fillStyle = c;
-    ctx.beginPath();
-    ctx.arc(px, py, pulse, 0, Math.PI * 2);
-    ctx.fill();
+  const roster = floorRoster(plan);
+  if (!roster.length) return;
+
+  // Spread the dots across the visible top face, two staggered rows so a busy
+  // department stays readable.
+  const perRow = Math.min(roster.length, 6);
+  const rows = Math.ceil(roster.length / perRow);
+  roster.forEach((agent, i) => {
+    const row = Math.floor(i / perRow);
+    const col = i % perRow;
+    const inRow = Math.min(perRow, roster.length - row * perRow);
+    const u = (col + 1) / (inRow + 1);
+    const v = rows === 1 ? 0.55 : 0.34 + (row / Math.max(1, rows - 1)) * 0.42;
+    const p = iso(u * W, v * D, z);
+    drawAgentDot(p.X, p.Y, agent, i, color);
   });
 }
+
+function drawAgentDot(x, y, agent, i, floorColor) {
+  const cls = statusClass(agent.status);
+  const color = GLOW[cls] || GLOW.idle;
+  const running = cls === 'running';
+  const lead = agent.level === 'head' || agent.level === 'executive';
+  const r = (lead ? 5 : 4) + (running ? Math.sin(t * 3.2 + i) * 1.4 : 0);
+
+  // glow — the "agent dots s glow efektem" of §5.2
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, r * 6);
+  grad.addColorStop(0, withAlpha(color, running ? 0.6 : 0.35));
+  grad.addColorStop(0.5, withAlpha(color, running ? 0.22 : 0.12));
+  grad.addColorStop(1, withAlpha(color, 0));
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x, y, r * 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = color;
+  if (lead) {
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    ctx.strokeStyle = withAlpha(floorColor, 0.95);
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(x - r - 1.5, y - r - 1.5, r * 2 + 3, r * 2 + 3);
+  } else {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // dark core ring keeps the dot readable on a bright floor
+  ctx.strokeStyle = 'rgba(6,6,14,0.85)';
+  ctx.lineWidth = 1.4;
+  if (lead) {
+    ctx.strokeRect(x - r - 2.2, y - r - 2.2, r * 2 + 4.4, r * 2 + 4.4);
+  } else {
+    ctx.beginPath();
+    ctx.arc(x, y, r + 1.4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+function parse(hex) {
+  const h = String(hex).replace('#', '');
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function shade(hex, amount) {
+  const [r, g, b] = parse(hex);
+  return `rgb(${Math.round(r * amount)},${Math.round(g * amount)},${Math.round(b * amount)})`;
+}
+function withAlpha(hex, alpha) {
+  const [r, g, b] = parse(hex);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* ── crew rail ───────────────────────────────────────────────── */
 
 function renderCrew() {
   const host = document.getElementById('crew-list');
@@ -197,7 +293,8 @@ function renderCrew() {
   if (!host) return;
 
   const agents = model?.agents || [];
-  const working = agents.filter((a) => ['running', 'active', 'working'].includes(String(a.status).toLowerCase())).length;
+  const working = agents.filter((a) =>
+    ['running', 'active', 'working'].includes(String(a.status).toLowerCase())).length;
   if (summary) summary.textContent = `${working} / ${agents.length}`;
 
   if (!agents.length) {
@@ -205,26 +302,36 @@ function renderCrew() {
     return;
   }
 
-  host.innerHTML = agents
-    .map(
-      (a) => `
-      <div class="agent-card ${statusClass(a.status)}">
-        <div class="agent-avatar">${esc((a.name || '?')[0].toUpperCase())}</div>
-        <div class="agent-info">
-          <div class="agent-name">${esc(a.name)}</div>
-          <div class="agent-role">${esc(designation(a))}</div>
+  host.innerHTML = FLOOR_PLAN.map((plan) => {
+    const roster = floorRoster(plan);
+    if (!roster.length) return '';
+    const dept = plan.kind === 'dept' ? model?.departments.find((d) => d.key === plan.key) : null;
+    const color = plan.color || dept?.color || '#00ccff';
+    return `
+      <div class="crew-floor">
+        <div class="crew-floor-head" style="--c:${esc(color)}">
+          <span class="crew-floor-name">${esc(plan.label)}</span>
+          <span class="crew-floor-count">${roster.length}</span>
         </div>
-        <span class="agent-badge ${statusClass(a.status)}">${esc(a.status || 'idle')}</span>
-      </div>`,
-    )
-    .join('');
+        ${roster.map((a) => `
+          <div class="agent-card ${statusClass(a.status)}">
+            <div class="agent-avatar">${esc((a.name || '?')[0].toUpperCase())}</div>
+            <div class="agent-info">
+              <div class="agent-name">${esc(a.name)}</div>
+              <div class="agent-role">${esc(a.role || '')}</div>
+            </div>
+            <span class="agent-badge ${statusClass(a.status)}">${esc(a.status || 'idle')}</span>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
 }
 
 function updateStationStatus() {
   const el = document.getElementById('station-status');
   if (!el) return;
   const agents = model?.agents || [];
-  const running = agents.filter((a) => ['running', 'active', 'working'].includes(String(a.status).toLowerCase())).length;
+  const running = agents.filter((a) =>
+    ['running', 'active', 'working'].includes(String(a.status).toLowerCase())).length;
   const errored = agents.filter((a) => String(a.status).toLowerCase() === 'error').length;
   if (errored) {
     el.textContent = `● ${errored} ERROR`;

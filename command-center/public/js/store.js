@@ -43,8 +43,10 @@ export function buildModel(blueprint, agents = [], orgTree = null) {
   let staffedTeamTotal = 0;
 
   const departments = (blueprint?.departments || []).map((dept) => {
-    const boardAgent = byName.get(dept.board) || null;
-    if (boardAgent) claimed.add(boardAgent.id);
+    // The summary puts a department head among the existing agents rather than
+    // creating a separate board agent.
+    const headAgent = byName.get(dept.head) || null;
+    if (headAgent) claimed.add(headAgent.id);
 
     let deptAgents = 0;
 
@@ -97,9 +99,9 @@ export function buildModel(blueprint, agents = [], orgTree = null) {
 
     return {
       ...dept,
-      boardAgent,
+      headAgent,
       divisions,
-      agentCount: deptAgents + (boardAgent ? 1 : 0),
+      agentCount: deptAgents + (headAgent ? 1 : 0),
       vacancyCount: divisions.reduce((n, v) => n + v.vacancyCount, 0),
     };
   });
@@ -150,7 +152,7 @@ export function buildModel(blueprint, agents = [], orgTree = null) {
       teams: teamTotal,
       staffedTeams: staffedTeamTotal,
       agents: list.length,
-      boards: departments.filter((d) => d.boardAgent).length,
+      heads: departments.filter((d) => d.headAgent).length,
       vacancies: departments.reduce((n, d) => n + d.vacancyCount, 0)
         + executive.filter((e) => !e.agent).length,
     },

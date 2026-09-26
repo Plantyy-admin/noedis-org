@@ -55,16 +55,20 @@ check('uplink reports a live/poll state', ['live', 'poll'].includes(String(uplin
 /* ── 2. ORG section ──────────────────────────────────────────── */
 const orgCards = await page.$$eval('#org-tree .org-card .org-card-title', (els) => els.map((e) => e.textContent.trim()));
 check('ORG shows FOUNDER', orgCards.some((t) => t.includes('FOUNDER')), orgCards[0]);
-check('ORG shows NOE COMMAND', orgCards.some((t) => t.includes('NOE')), orgCards[1]);
-check('ORG shows CODY', orgCards.some((t) => t.includes('CODY')));
-check('ORG shows RENE', orgCards.some((t) => t.includes('RENE')));
+check('ORG shows NOE (Senior Advisor)', orgCards.some((t) => t.includes('NOE')), orgCards[1]);
+check('ORG shows CODY (Right Hand)', orgCards.some((t) => t.includes('CODY')));
+check('ORG shows RENE (Left Hand)', orgCards.some((t) => t.includes('RENE')));
 
-const boards = await page.$$eval('#org-tree .org-board .org-board-name', (els) => els.map((e) => e.textContent.trim()));
-check('ORG lists 9 department boards', boards.length === 9, `${boards.length}: ${boards.join(', ')}`);
+// §4.1: seven departments, each led by one of the existing agents.
+const heads = await page.$$eval('#org-tree .org-board .org-board-name', (els) => els.map((e) => e.textContent.trim()));
+const EXPECT_DEPTS = ['VÝVOJ', 'INFRA', 'IT', 'MARKETING', 'LEGAL', 'FINANCE', 'LABS'];
+check('ORG lists the 7 departments of the summary', heads.length === 7, `${heads.length}: ${heads.join(', ')}`);
+check('ORG departments match §4.1 exactly',
+  EXPECT_DEPTS.every((d) => heads.includes(d)), heads.join(', '));
 
 /* ── 3. Units tree ───────────────────────────────────────────── */
 const depts = await page.$$eval('#units-tree > .unit-dept .unit-dept-name', (els) => els.map((e) => e.textContent.trim()));
-check('units tree lists 9 departments', depts.length === 9, depts.join(', '));
+check('units tree lists the 7 departments', depts.length === 7, depts.join(', '));
 
 const agentRows = await page.$$eval('#units-tree .unit-agent .unit-agent-name', (els) => els.map((e) => e.textContent.trim()));
 // Exactly the specialists belong inside teams — boards/execs must not leak in.
@@ -82,19 +86,28 @@ check('no department fell back to empty', !emptyDept);
 await page.click('.nav-tab[data-view="dashboard"]');
 await page.waitForTimeout(600);
 const rosterRows = await page.$$eval('#agent-tbody tr', (els) => els.length);
-check('DASHBOARD roster table populated', rosterRows >= 20, `${rosterRows} rows`);
+check('DASHBOARD roster has exactly the 24 agents of §4.3', rosterRows === 24, `${rosterRows} rows`);
 const rtAdapter = await page.textContent('#rt-adapter');
 check('DASHBOARD shows pi_local runtime', String(rtAdapter).includes('pi_local'), String(rtAdapter));
 
 await page.click('.nav-tab[data-view="inbox"]');
 await page.waitForTimeout(1200);
-const inboxItems = await page.$$eval('#inbox-issues .inbox-item, #inbox-issues .empty-note', (els) => els.length);
+const inboxHeads = await page.$$eval('.inbox-grid .card-head', (els) => els.map((e) => e.textContent.trim()));
+const EXPECT_CATS = ['DONE', 'DECISION', 'RISK', 'RELEASE'];
+check('INBOX shows only DONE/DECISION/RISK/RELEASE',
+  EXPECT_CATS.every((c) => inboxHeads.some((h) => h.startsWith(c) || h.includes(` ${c} `))),
+  inboxHeads.join(' | '));
+const extraCats = inboxHeads.filter((h) => !EXPECT_CATS.some((c) => h.includes(c)) && !h.includes('AKTIVITA'));
+check('INBOX has no other report categories', extraCats.length === 0, extraCats.join(' | '));
+const inboxItems = await page.$$eval('.inbox-grid .inbox-item, .inbox-grid .empty-note', (els) => els.length);
 check('INBOX renders without hanging', inboxItems > 0, `${inboxItems} nodes`);
 
 await page.click('.nav-tab[data-view="chat"]');
 await page.waitForTimeout(400);
 const rosterItems = await page.$$eval('#chat-roster .roster-item', (els) => els.length);
-check('CHAT roster populated', rosterItems >= 20, `${rosterItems} agents`);
+check('CHAT roster populated', rosterItems === 24, `${rosterItems} agents`);
+const dropdownOpts = await page.$$eval('#chat-agent-select option', (els) => els.length);
+check('CHAT has an agent dropdown with every agent', dropdownOpts === 25, `${dropdownOpts} options (24 + placeholder)`);
 
 await page.click('.nav-tab[data-view="gameplay"]');
 await page.waitForTimeout(900);
@@ -103,13 +116,20 @@ const canvasOk = await page.evaluate(() => {
   return Boolean(c && c.width > 0 && c.height > 0);
 });
 check('GAMEPLAY canvas sized', canvasOk);
+// §5.2: ten floors, NOE -> CODY -> RENE -> the seven departments.
+const floors = await page.$$eval('#crew-list .crew-floor-name', (els) => els.map((e) => e.textContent.trim()));
+const EXPECT_FLOORS = ['NOE', 'CODY', 'RENE', 'VÝVOJ', 'INFRA', 'IT', 'MARKETING', 'LEGAL', 'FINANCE', 'LABS'];
+check('GAMEPLAY rail shows the 10 floors in order',
+  JSON.stringify(floors) === JSON.stringify(EXPECT_FLOORS), floors.join(' → '));
 
 /* ── 4b. PAPERCLIP tab must actually embed the native UI ─────── */
 await page.click('.nav-tab[data-view="paperclip"]');
 await page.waitForTimeout(4000);
+const clientCfg = await (await fetch(`${BASE}/noedis/config`)).json();
+const uiHost = new URL(clientCfg.paperclipUiUrl).host;
 const pcFrame = page.frames().find((f) => {
   const u = f.url();
-  return u && !u.includes('/command') && !u.startsWith('about:') && u.includes('noedis.org');
+  return u && !u.includes('/command') && !u.startsWith('about:') && u.includes(uiHost);
 });
 let pcTitle = null;
 try {

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /* ══════════════════════════════════════════════════════════════
    NOEDIS — reconcile the live Paperclip org with the canonical
-   MASTER v0.3.0 blueprint.
+   blueprint (NOEDIS_COMPLETE_SUMMARY_v1.0.md §4.1 + §4.3).
 
    Idempotent: safe to run repeatedly. It
      1. creates the executive agents the blueprint requires and that
         do not yet exist (WorkforceArchitect),
-     2. creates one Department Board agent per MASTER department,
-     3. places every known specialist into its MASTER division/team
+     2. marks each department's head among the existing agents,
+     3. places every known specialist into its division/team
         by writing role + reportsTo + metadata,
      4. aligns the executive roles (NOE / CODY / RENE),
      5. clears stale agent errors and reports runtime drift.
@@ -15,7 +15,11 @@
    Usage (on the VPS):
      node reconcile-org.mjs --blueprint ./org-blueprint.json \
        --api http://127.0.0.1:3100 --key <board-key> \
-       --company <companyId> [--dry-run]
+       --company <companyId> [--dry-run] [--prune] [--model <id>]
+
+   --prune deletes agents that this reconciler previously managed
+   (they carry metadata.blueprintVersion) but that the current blueprint no
+   longer defines. Agents it never touched are never deleted.
    ══════════════════════════════════════════════════════════════ */
 
 import fs from 'node:fs';
@@ -33,6 +37,7 @@ const API = String(arg('api', 'http://127.0.0.1:3100')).replace(/\/+$/, '');
 const KEY = arg('key', process.env.PAPERCLIP_API_KEY || '');
 const COMPANY = arg('company', process.env.NOEDIS_COMPANY_ID || '');
 const DRY = Boolean(arg('dry-run', false));
+const PRUNE = Boolean(arg('prune', false));
 
 if (!KEY) { console.error('missing --key (board API key)'); process.exit(2); }
 if (!COMPANY) { console.error('missing --company'); process.exit(2); }
@@ -95,8 +100,8 @@ const instructions = {
     `Runtime invariant: every NOEDIS agent runs pi_local through OpenRouter. ` +
     `Never reconfigure yourself or another agent onto codex_local, claude_local or opencode_local.\n` +
     `No plaintext credential may ever be written into instructions, repositories or markdown files.`,
-  board: (dept) =>
-    `You are the ${dept.name} Department Board for NOEDIS.\n\n` +
+  head: (dept) =>
+    `You are the head of the ${dept.name} department at NOEDIS.\n\n` +
     `Purpose: ${dept.purpose}\n\n` +
     `You own this department's outcomes. You receive accepted work from CODY, break it into ` +
     `division and team work, verify evidence before accepting any result, and return one ` +
@@ -109,12 +114,12 @@ const instructions = {
     `You are ${name}, a specialist in ${u.dept.name} / ${u.div.name} / ${u.team.name} at NOEDIS.\n\n` +
     `Department purpose: ${u.dept.purpose}\n\n` +
     `You do the hands-on work of your team and hand back evidence, not opinions. ` +
-    `Report to your Department Board (${u.dept.board}). Escalate blockers instead of guessing. ` +
+    `Report up through your department head (${u.dept.head}). Escalate blockers instead of guessing. ` +
     `Stay inside your specialism; cross-team needs go up the chain.`,
 };
 
 /* ── run ─────────────────────────────────────────────────────── */
-const report = { created: [], updated: [], unchanged: [], errors: [], skipped: [], staleErrors: [] };
+const report = { created: [], updated: [], unchanged: [], pruned: [], errors: [], skipped: [], staleErrors: [] };
 
 console.log(`\n▸ NOEDIS org reconcile ${DRY ? '(DRY RUN) ' : ''}`);
 console.log(`  blueprint : ${blueprint.version} (${blueprint.departments.length} departments)`);
@@ -152,7 +157,7 @@ const iconFor = (key) => ({
 
 /* Paperclip validates agents.role against a fixed enum, so the org path goes
    into metadata (and title carries the human-readable designation). */
-const ROLE_ENUMS = blueprint.roleEnums || { byAgentName: {}, boardByDept: {}, default: 'general' };
+const ROLE_ENUMS = blueprint.roleEnums || { byAgentName: {}, departmentHeadByDept: {}, default: 'general' };
 function roleEnumFor(name, fallback) {
   return ROLE_ENUMS.byAgentName?.[name] || fallback || ROLE_ENUMS.default || 'general';
 }
@@ -278,29 +283,39 @@ for (const e of blueprint.executive) {
   }
 }
 
-/* 2 ── department boards ---------------------------------------- */
-console.log('── department boards');
-const boardIdByDept = new Map();
+/* 2 ── department heads ------------------------------------------ */
+/* The summary puts a department head among the existing 24 agents rather than
+   creating a separate board agent, so this section only records the mapping. */
+console.log('── department heads');
+const headIdByDept = new Map();
 for (const dept of blueprint.departments) {
+  const head = byName.get(dept.head);
+  if (!head) {
+    report.errors.push(`department head ${dept.head} (${dept.name}) not found`);
+    continue;
+  }
   try {
     const r = await ensureAgent({
-      name: dept.board,
-      role: ROLE_ENUMS.boardByDept?.[dept.key] || 'pm',
-      title: `${dept.name} Board Chair`,
+      name: dept.head,
+      role: roleEnumFor(dept.head, ROLE_ENUMS.departmentHeadByDept?.[dept.key] || 'general'),
+      title: dept.headTitle,
+      // A department head reports to CODY, never to itself.
       reportsTo: execIds.cody || execIds.noe || null,
-      icon: iconFor(dept.icon),
-      instructions: instructions.board(dept),
+      icon: head.icon || 'bot',
+      instructions: instructions.head(dept),
       metadata: {
-        level: 'board',
+        level: 'head',
+        isDepartmentHead: true,
         dept: dept.key,
         deptName: dept.name,
-        path: dept.name,
+        path: `${dept.name} / Vedoucí oddělení`,
         blueprintVersion: blueprint.version,
       },
     });
-    boardIdByDept.set(dept.key, r.id);
+    headIdByDept.set(dept.key, r.id);
+    console.log(`   ${dept.name.padEnd(10)} head: ${dept.head}`);
   } catch (err) {
-    report.errors.push(`${dept.board}: ${err.message}`);
+    report.errors.push(`head ${dept.head}: ${err.message}`);
   }
 }
 
@@ -308,7 +323,7 @@ for (const dept of blueprint.departments) {
 console.log('── specialists');
 for (const agent of existing || []) {
   if (blueprint.executive.some((e) => e.name === agent.name)) continue;
-  if (blueprint.departments.some((d) => d.board === agent.name)) continue;
+  if (blueprint.departments.some((d) => d.head === agent.name)) continue;
 
   const u = unitForAgentName(agent.name);
   if (!u) {
@@ -321,7 +336,10 @@ for (const agent of existing || []) {
       name: agent.name,
       role: roleEnumFor(agent.name, 'general'),
       title: agent.name,
-      reportsTo: boardIdByDept.get(u.dept.key) || execIds.cody || null,
+      // A department head cannot report to itself — it reports to CODY.
+      reportsTo: u.dept.head === agent.name
+        ? (execIds.cody || execIds.noe || null)
+        : (headIdByDept.get(u.dept.key) || execIds.cody || null),
       icon: agent.icon || 'bot',
       instructions: instructions.specialist(u, agent.name),
       metadata: {
@@ -336,6 +354,37 @@ for (const agent of existing || []) {
     });
   } catch (err) {
     report.errors.push(`${agent.name}: ${err.message}`);
+  }
+}
+
+/* 4 ── prune agents the blueprint no longer defines -------------- */
+/* Only agents this reconciler previously managed are eligible: they carry
+   metadata.blueprintVersion. Everything else is left strictly alone. */
+if (PRUNE) {
+  console.log('── prune');
+  const managedNames = new Set([
+    ...blueprint.executive.map((e) => e.name),
+    ...blueprint.departments.map((d) => d.head),
+    ...blueprint.departments.flatMap((d) =>
+      d.divisions.flatMap((v) => v.teams.flatMap((t) => t.staffed || []))),
+  ]);
+
+  const live = await call('GET', `/api/companies/${COMPANY}/agents`);
+  for (const a of live || []) {
+    const managed = a?.metadata && typeof a.metadata === 'object' && a.metadata.blueprintVersion;
+    if (!managed) continue;
+    if (managedNames.has(a.name)) continue;
+    if (DRY) {
+      report.pruned.push(`${a.name} (would delete)`);
+      continue;
+    }
+    try {
+      await call('DELETE', `/api/agents/${a.id}`);
+      report.pruned.push(a.name);
+      byName.delete(a.name);
+    } catch (err) {
+      report.errors.push(`prune ${a.name}: ${err.message}`);
+    }
   }
 }
 
@@ -364,6 +413,7 @@ line('created', report.created);
 line('updated', report.updated);
 line('unchanged', report.unchanged);
 line('skipped', report.skipped);
+line('pruned', report.pruned);
 line('errors', report.errors);
 if (report.staleErrors.length) {
   console.log('stale errors ' + report.staleErrors.length);

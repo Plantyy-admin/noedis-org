@@ -17,8 +17,16 @@ export function initChat({ toast } = {}) {
   const filter = document.getElementById('chat-filter');
   const form = document.getElementById('chat-form');
   const input = document.getElementById('chat-input');
+  const select = document.getElementById('chat-agent-select');
 
   filter?.addEventListener('input', () => renderRoster());
+
+  // §5.2: "Výběr agenta z dropdownu (všichni agenti)."
+  select?.addEventListener('change', () => {
+    selectedId = select.value || null;
+    renderRoster();
+    renderTarget();
+  });
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -37,8 +45,42 @@ export function setChatAgents(list) {
   agents = Array.isArray(list) ? list : [];
   // Keep the selection valid across live refreshes.
   if (selectedId && !agents.some((a) => a.id === selectedId)) selectedId = null;
+  renderDropdown();
   renderRoster();
   renderTarget();
+}
+
+/** Fill the "write to any agent" dropdown, grouped by floor. */
+function renderDropdown() {
+  const select = document.getElementById('chat-agent-select');
+  if (!select) return;
+
+  const rank = (x) => (x.metadata?.level === 'executive' ? 0 : x.metadata?.level === 'head' ? 1 : 2);
+  const sorted = [...agents].sort(
+    (a, b) => rank(a) - rank(b) || String(a.name).localeCompare(String(b.name), 'cs'),
+  );
+
+  const groups = [
+    ['Vedení', sorted.filter((a) => a.metadata?.level === 'executive')],
+    ['Vedoucí oddělení', sorted.filter((a) => a.metadata?.level === 'head')],
+    ['Specialisté', sorted.filter((a) => !a.metadata?.level || a.metadata.level === 'specialist')],
+  ];
+
+  select.innerHTML =
+    '<option value="">— vyber agenta —</option>' +
+    groups
+      .filter(([, list]) => list.length)
+      .map(
+        ([label, list]) =>
+          `<optgroup label="${esc(label)}">` +
+          list
+            .map((a) => `<option value="${esc(a.id)}">${esc(a.name)} — ${esc(designation(a))}</option>`)
+            .join('') +
+          '</optgroup>',
+      )
+      .join('');
+
+  select.value = selectedId || '';
 }
 
 function renderRoster() {
@@ -54,7 +96,7 @@ function renderRoster() {
     .sort((a, b) => {
       // Executives first, then alphabetical.
       // Executives first (metadata.level), then alphabetical.
-      const rank = (x) => (x.metadata?.level === 'executive' ? 0 : x.metadata?.level === 'board' ? 1 : 2);
+      const rank = (x) => (x.metadata?.level === 'executive' ? 0 : x.metadata?.level === 'head' ? 1 : 2);
       return rank(a) - rank(b) || String(a.name).localeCompare(String(b.name), 'cs');
     });
 
@@ -79,6 +121,8 @@ function renderRoster() {
   host.querySelectorAll('.roster-item').forEach((btn) => {
     btn.addEventListener('click', () => {
       selectedId = btn.dataset.id;
+      const select = document.getElementById('chat-agent-select');
+      if (select) select.value = selectedId;
       renderRoster();
       renderTarget();
     });
