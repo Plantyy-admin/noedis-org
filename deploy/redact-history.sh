@@ -16,22 +16,33 @@
 # ══════════════════════════════════════════════════════════════
 set -euo pipefail
 
-BASE_REF="${1:?usage: redact-history.sh <base-ref> <branch> [sed-expr...]}"
-BRANCH="${2:?usage: redact-history.sh <base-ref> <branch> [sed-expr...]}"
-shift 2
-
-# Default redactions: the credentials that were found in this repository.
-EXPRS=(
-  's/REDACTED\.admin/REDACTED/'
-  's/REDACTED/REDACTED/'
-  's/REDACTED/REDACTED/g'
-  's/sk-or-v1-[A-Za-z0-9]\{16,\}/REDACTED/g'
-)
-if [[ $# -gt 0 ]]; then EXPRS=("$@"); fi
+BASE_REF="${1:?usage: redact-history.sh <base-ref> <branch> [patterns-file]}"
+BRANCH="${2:?usage: redact-history.sh <base-ref> <branch> [patterns-file]}"
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 GIT_DIR_ABS="$(cd "$(git rev-parse --git-dir)" && pwd)"
+
+PATTERNS_FILE="${3:-$REPO_ROOT/deploy/.redact-patterns}"
+
+# Prefix-only patterns identify a credential TYPE, not a value, so they are
+# safe to commit. Exact values (passwords, one-off keys) go in the ignored
+# patterns file instead.
+EXPRS=(
+  's/pcp_board_[A-Za-z0-9_-]\{8,\}/REDACTED/g'
+  's/cfut_[A-Za-z0-9_-]\{8,\}/REDACTED/g'
+  's/sk-or-v1-[A-Za-z0-9]\{16,\}/REDACTED/g'
+)
+
+if [[ -f "$PATTERNS_FILE" ]]; then
+  while IFS= read -r line; do
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    EXPRS+=("$line")
+  done < "$PATTERNS_FILE"
+  echo "Loaded extra pattern(s) from ${PATTERNS_FILE#$REPO_ROOT/}"
+else
+  echo "No patterns file at $PATTERNS_FILE — applying prefix patterns only."
+fi
 
 BASE="$(git rev-parse "$BASE_REF")"
 OLD_TIP="$(git rev-parse "$BRANCH")"
