@@ -87,6 +87,29 @@ def block_span(src: str):
     sys.exit("ERROR: unbalanced braces in noedis.org block")
 
 
+def bare_handle_span(block: str):
+    """Span of the root catch-all `handle { ... }` (no matcher) in a server block.
+
+    The catch-all is the un-prefixed `handle` at one tab of indentation; every
+    other route in these blocks carries a matcher (`/app/*`, `/noedis/*`, ...),
+    so this uniquely identifies the root route.
+    """
+    m = re.search(r"^\thandle \{\s*$", block, re.M)
+    if not m:
+        return None
+    depth = 0
+    i = m.end() - 1
+    while i < len(block):
+        if block[i] == "{":
+            depth += 1
+        elif block[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return m.start(), i + 1
+        i += 1
+    return None
+
+
 def replace_region(src: str, start_marker: str, end_marker: str, body: str):
     """Replace an existing managed region, or report that there was none."""
     a = src.find(start_marker)
@@ -123,16 +146,19 @@ def main() -> int:
         src = src[:start] + block + src[end:]
 
     # The root catch-all must serve the cockpit; Paperclip is on www now.
+    # Whatever the root route currently does (reverse_proxy to Paperclip, or a
+    # static file_server from an earlier deployment), it is replaced wholesale —
+    # otherwise a file_server root would keep shadowing the cockpit.
     start, end = block_span(src)
     block = src[start:end]
-    block, n = re.subn(
-        r"(\n\thandle \{\s*\n\t\treverse_proxy )([^\n]+)",
-        lambda m: m.group(1) + COCKPIT,
-        block,
-        count=1,
-    )
-    if n:
-        src = src[:start] + block + src[end:]
+    span = bare_handle_span(block)
+    if not span:
+        sys.exit("ERROR: no root `handle {` catch-all inside the noedis.org block")
+    a, b = span
+    root_route = f"\thandle {{\n\t\treverse_proxy {COCKPIT}\n\t}}"
+    block = block[:a] + root_route + block[b:]
+    src = src[:start] + block + src[end:]
+    print(f"Caddy: root catch-all -> {COCKPIT}")
 
     # X-Frame-Options on the cockpit stays SAMEORIGIN (never framed).
     start, end = block_span(src)

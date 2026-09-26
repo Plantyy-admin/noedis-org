@@ -29,9 +29,11 @@ DEFAULT = (
     "/usr/lib/node_modules/paperclipai/node_modules/@paperclipai/server/ui-dist/index.html"
 )
 
-# Content markers left behind by the injection.
+# Content markers left behind by the injection. Later deployments dropped the
+# leading `// NOEDIS v4` banner, so the script is identified by markers unique to
+# it that survive a re-injection: the localStorage view key and the nav literal.
 STYLE_MARKER = ".noedis-bar"
-SCRIPT_MARKER = "// NOEDIS v4"
+SCRIPT_MARKERS = ("noedis.view", "// NOEDIS v4", "var NAV=['CHAT','PAPERCLIP'")
 
 
 def strip_between(src: str, marker: str, open_tag: str, close_tag: str):
@@ -58,7 +60,10 @@ def main() -> int:
     original_len = len(src)
 
     src, removed_style = strip_between(src, STYLE_MARKER, "<style>", "</style>")
-    src, removed_script = strip_between(src, SCRIPT_MARKER, "<script>", "</script>")
+    removed_script = False
+    for marker in SCRIPT_MARKERS:
+        src, hit = strip_between(src, marker, "<script>", "</script>")
+        removed_script = removed_script or hit
 
     if not (removed_style or removed_script):
         print(f"clean already — nothing to remove ({original_len} bytes)")
