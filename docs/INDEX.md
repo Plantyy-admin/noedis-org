@@ -2,7 +2,22 @@
 
 ## Specification
 
-- [Company MASTER v0.3.0](../NOEDIS_AUTONOMOUS_COMPANY_MASTER_v0.3.0.md) — canonical spec
+Two MASTER documents govern two different layers. Neither replaces the other.
+
+### Product layer — `docs/MASTER.md` (canonical)
+
+- [**MASTER — Business Logic & Backend Domain Specification v1.0-draft**](MASTER.md) —
+  RIGHT / UP / DOWN, HOMESCREEN, FRAMEWORK, NODE, TOTEM → NP → CREDIT, SCORE / XP /
+  LEVEL, subscription tiers, 20 invariants, canonical constants v1, state machines,
+  API operations and the §61 OPEN DECISIONS that must **not** be invented.
+- §63 fixes the implementation order: glossary → state diagrams → database schema →
+  ledger invariants → API contracts → business-rule unit tests → integration tests →
+  **only then** UI. "Agent nesmí začít tím, že nakreslí dashboard."
+
+### Company layer — the autonomous-company OS
+
+- [Company MASTER v0.3.0](../NOEDIS_AUTONOMOUS_COMPANY_MASTER_v0.3.0.md) — org structure,
+  Department → Division → Team → Agents, reporting law, pi_local + OpenRouter invariant
 - [Deployment Prompt v0.3.0](../PROMPT_VPS_AGENT_NOEDIS_COMPANY_OS_v0.3.0.md)
 - [Deployment Summary v1.0](../NOEDIS_COMPLETE_SUMMARY_v1.0.md)
 
