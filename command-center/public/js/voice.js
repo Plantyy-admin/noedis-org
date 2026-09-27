@@ -149,11 +149,22 @@ async function refreshStatus() {
     const res = await fetch(`${BASE}/api/voice/status`, { headers: { Accept: 'application/json' } });
     const s = await res.json();
     const ok = Boolean(s?.hermes?.reachable);
-    badge.dataset.state = ok ? 'ok' : 'off';
-    badge.textContent = ok ? (s.whatsapp?.linked ? 'HERMES · WA' : 'HERMES') : 'OFFLINE';
-    badge.title = ok
-      ? `model ${s.hermes.model || '?'} · whatsapp ${s.whatsapp?.linked ? 'spárováno' : 'nespárováno'}`
-      : s?.hermes?.error || 'Hermes neodpovídá';
+    const linked = Boolean(s?.whatsapp?.linked);
+    if (!ok) {
+      badge.dataset.state = 'off';
+      badge.textContent = 'OFFLINE';
+      badge.title = s?.hermes?.error || 'Hermes neodpovídá';
+    } else if (!linked) {
+      // Reachable but nobody has scanned the QR yet — say so rather than
+      // looking healthy, because the WhatsApp half does not work until then.
+      badge.dataset.state = 'warn';
+      badge.textContent = 'PŘIPOJIT WA';
+      badge.title = 'Hermes běží, ale WhatsApp ještě není spárovaný — otevři VOICE a naskenuj QR';
+    } else {
+      badge.dataset.state = 'ok';
+      badge.textContent = 'HERMES · WA';
+      badge.title = `model ${s.hermes.model || '?'} · WhatsApp spárováno`;
+    }
     return s;
   } catch {
     badge.dataset.state = 'off';

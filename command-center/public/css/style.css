@@ -1864,6 +1864,7 @@ select option, select optgroup { background: #071026; color: var(--nd-ink); }
   text-transform: uppercase;
 }
 .hermes-state[data-state="ok"] { color: #b6ffe2; border-color: #63dda85c; background: #63dda81f; }
+.hermes-state[data-state="warn"] { color: #ffe9b0; border-color: #ffd23f5c; background: #ffd23f1c; }
 .hermes-state[data-state="off"] { color: #ffc2d6; border-color: #dd397b5c; background: #dd397b1f; }
 
 /* ── WhatsApp pairing card ── */
@@ -1873,6 +1874,11 @@ select option, select optgroup { background: #071026; color: var(--nd-ink); }
   border-bottom: 1px solid var(--nd-line);
   background: linear-gradient(180deg, #0b1830, #081324);
 }
+/* An author `display` beats the UA rule for [hidden], so anything that sets
+   one has to opt out explicitly or it stays on screen when JS hides it. */
+.wa-pair[hidden],
+.wa-pair-body[hidden],
+.wa-pair-head[hidden] { display: none; }
 .wa-pair-head {
   display: flex;
   align-items: center;

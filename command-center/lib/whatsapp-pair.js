@@ -195,6 +195,7 @@ export class WhatsAppPairing {
       this.state = 'linked';
       log('whatsapp: linked');
       this.stop();
+      this.#hardenSession();
       this.#restartGateway();
       return;
     }
@@ -205,6 +206,21 @@ export class WhatsAppPairing {
     }
     if (name === 'started') {
       this.state = 'starting';
+    }
+  }
+
+  /**
+   * The session directory holds the WhatsApp account's private keys. Hermes'
+   * own docs say to treat it as a password, and the bridge recreates it with
+   * the umask default, so tighten it again every time a link is made.
+   */
+  #hardenSession() {
+    for (const dir of [this.sessionPath, path.dirname(this.sessionPath)]) {
+      try {
+        fs.chmodSync(dir, 0o700);
+      } catch (err) {
+        log(`whatsapp: could not tighten ${dir}: ${err.message}`);
+      }
     }
   }
 
