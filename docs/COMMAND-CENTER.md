@@ -347,6 +347,26 @@ constant time, and it does exactly one thing — create an issue for NOE and wak
 him. Every hand-off appends a line to `/srv/noedis/logs/delegations.jsonl`, which
 is how the VOICE panel can show "PŘEDÁNO" for the turn that produced it.
 
+**The hop to CODY needs to be asked for.** NOE's canonical role is "posoudí každý
+úkol a deleguje CODYmu", but in practice NOE *did the work itself* and closed the
+task — twice, including after its prompt was given an explicit routing rule — so
+nothing ever reached CODY. Asked for the sub-issue directly in the brief, it does
+it reliably: it created `NOE-11` assigned to CODY with a brief CODY could act on,
+and CODY delivered. The bridge therefore appends a short routing duty to every
+brief it writes for NOE (`withRoutingDuty` in `lib/voice-api.js`). That keeps the
+decision with NOE — the bridge only states the duty; NOE still writes the
+sub-issue, chooses its wording and closes the parent — instead of hard-coding the
+chain here.
+
+Verified end to end: a plain task sent through the bridge produced a NOE parent
+and a CODY child; NOE commented *"Předáno agentu CODY … Vytvořil jsem podúkol
+NOE-11"*, and CODY returned measurements.
+
+`deploy/reconcile-org.mjs --instructions-only` applies just the executive
+prompts. Instructions are deliberately outside the normal drift check (rewriting
+a prompt is a behaviour change, not a reconciliation), so without that flag a
+corrected prompt never reaches an agent that already exists.
+
 **Voice notes on WhatsApp** are transcribed by the same local Whisper, and TTS
 replies go back as audio attachments — both are Hermes features, not ours.
 

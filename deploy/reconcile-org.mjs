@@ -15,7 +15,12 @@
    Usage (on the VPS):
      node reconcile-org.mjs --blueprint ./org-blueprint.json \
        --api http://127.0.0.1:3100 --key <board-key> \
-       --company <companyId> [--dry-run] [--prune] [--model <id>]
+       --company <companyId> [--dry-run] [--prune] [--model <id>] \
+       [--instructions-only]
+
+   --instructions-only applies just the executive prompts (where the routing
+   rules live) and exits. Instructions are not part of the drift check, so
+   without it a corrected prompt never reaches an agent that already exists.
 
    --prune deletes agents that this reconciler previously managed
    (they carry metadata.blueprintVersion) but that the current blueprint no
@@ -93,9 +98,28 @@ function unitForAgentName(name) {
   return null;
 }
 
+/* Executive routing. The blueprint says NOE "posoudí každý úkol a deleguje
+   CODYmu" and CODY "rozděluje práci agentům v departmentech" — but a capable
+   agent given only that simply does the work itself, and the chain never runs.
+   These clauses are the missing mechanism, spelled out. */
+const ROUTING = {
+  noe:
+    `Routing: you assess and route, you do not execute. Every task that needs real work must ` +
+    `leave your hands as a child issue assigned to CODY (Right Hand), carrying a brief he can ` +
+    `act on, and CODY must be woken. Do the work yourself only when the task is a question ` +
+    `about your own routing — otherwise never close an execution task as done on your own ` +
+    `authority; close it once CODY owns it, and say what you routed.\n\n`,
+  cody:
+    `Distribution: execution is yours. Break accepted work into department-sized child issues, ` +
+    `assign each to the department head that owns it and wake them. Resolve dependencies ` +
+    `between departments yourself; escalate to NOE only what a department cannot resolve, and ` +
+    `hand RENE the finished result for the Founder.\n\n`,
+};
+
 const instructions = {
   executive: (e) =>
     `You are ${e.name} (${e.interface}). ${e.description}\n\n` +
+    (ROUTING[e.key] || '') +
     `Reporting law: ${blueprint.reportingLaw.chain}\n` +
     `Runtime invariant: every NOEDIS agent runs pi_local through OpenRouter. ` +
     `Never reconfigure yourself or another agent onto codex_local, claude_local or opencode_local.\n` +
@@ -130,6 +154,47 @@ const existing = await call('GET', `/api/companies/${COMPANY}/agents`);
 const byName = new Map((existing || []).map((a) => [a.name, a]));
 const idByName = new Map();
 for (const a of existing || []) idByName.set(a.name, a.id);
+
+/* ── instructions-only pass ──────────────────────────────────────
+   Instructions are deliberately NOT part of the drift check below: rewriting
+   an agent's prompt is a behaviour change, not a reconciliation. But that also
+   meant a corrected prompt never reached an agent that already existed. This
+   flag applies the executive prompts (the routing rules live there) without
+   touching provider, model or anything else. */
+if (arg('instructions-only', false)) {
+  const report = { updated: [], unchanged: [], errors: [] };
+  console.log('\n▸ executive instructions only\n');
+  for (const e of blueprint.executive) {
+    const found = byName.get(e.name);
+    if (!found) {
+      report.errors.push(`${e.name}: not in the live org`);
+      continue;
+    }
+    const want = instructions.executive(e);
+    const have = found.adapterConfig?.instructions || '';
+    if (have === want) {
+      report.unchanged.push(e.name);
+      continue;
+    }
+    if (DRY) {
+      report.updated.push(`${e.name} (would update)`);
+      continue;
+    }
+    try {
+      await call('PATCH', `/api/agents/${found.id}`, {
+        adapterConfig: { ...(found.adapterConfig || {}), instructions: want },
+      });
+      report.updated.push(e.name);
+    } catch (err) {
+      report.errors.push(`${e.name}: ${err.message}`);
+    }
+  }
+  for (const [k, v] of Object.entries(report)) {
+    if (v.length) console.log(`  ${k}: ${v.join(', ')}`);
+  }
+  console.log('');
+  process.exit(report.errors.length ? 1 : 0);
+}
 
 const adapterConfigFor = (text) => ({
   adapterType: blueprint.runtime.adapterType,

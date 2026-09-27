@@ -142,7 +142,7 @@ export function createVoiceApi({ hermes, paperclip, companyId, noeAgentId, deleg
     try {
       const issue = await paperclip.createWork({
         title: String(title).trim().slice(0, 200),
-        description: description ? String(description) : undefined,
+        description: withRoutingDuty(description),
         assigneeAgentId: noeAgentId,
         priority: priority || 'medium',
       });
@@ -172,6 +172,26 @@ export function createVoiceApi({ hermes, paperclip, companyId, noeAgentId, deleg
 }
 
 /* ── delegation log helpers ───────────────────────────────── */
+
+/**
+ * NOE's canonical role is to assess and route, not to execute — but in
+ * practice it did the work itself and closed the task, so nothing ever reached
+ * CODY. Asked directly in the brief, it creates the CODY sub-issue reliably.
+ * The brief this bridge writes therefore carries that duty explicitly, which
+ * keeps the routing decision with NOE instead of hard-coding the chain here.
+ */
+const ROUTING_DUTY =
+  '\n\n———\n' +
+  'Pokyn pro NOE (Senior Advisor): posuď tento úkol a předej ho CODYmu (Right Hand) ' +
+  'jako podúkol přiřazený jemu, s krátkým briefem, který CODY zvládne bez dohadování. ' +
+  'Práci sám neprováděj a neuzavírej ji jako hotovou — uzavři ji, až ji CODY převezme, ' +
+  'a do komentáře napiš, co jsi mu předal.';
+
+function withRoutingDuty(description) {
+  const body = description ? String(description).trim() : '';
+  if (body.includes('Pokyn pro NOE')) return body;
+  return body ? `${body}${ROUTING_DUTY}` : ROUTING_DUTY.trim();
+}
 
 function readDelegationCount(file) {
   try {
