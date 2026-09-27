@@ -350,6 +350,20 @@ is how the VOICE panel can show "PŘEDÁNO" for the turn that produced it.
 **Voice notes on WhatsApp** are transcribed by the same local Whisper, and TTS
 replies go back as audio attachments — both are Hermes features, not ours.
 
+**Web search and browsing.** Hermes carries the `web` and `browser` toolsets, both
+enabled. They need the pinned Chromium that ships as the `agent-browser` tool, so
+`deploy/deploy-hermes.sh` installs it explicitly — an earlier install had recorded
+it as declined (`--skip-browser`) and that opt-out survives updates. Search itself
+resolves through the provider chain in `tools/web_tools.py`; with no search key set
+it lands on **`ddgs`** (DuckDuckGo), which is free and keyless. Set `EXA_API_KEY`,
+`PARALLEL_API_KEY`, `FIRECRAWL_API_KEY`, `SEARXNG_URL` or `BRAVE_SEARCH_API_KEY` in
+`~/.hermes/.env` to move it up that chain. Page reading and clicking need no key at
+all.
+
+Verified on the live agent: a browser turn opened `https://example.com` and read its
+`H1`, and a search turn returned the day's EUR/CZK close — both without any search
+credential.
+
 **Deploying it.**
 
 ```bash

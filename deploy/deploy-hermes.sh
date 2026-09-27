@@ -52,16 +52,23 @@ remote 'set -e
 export PATH="$HOME/.local/bin:$PATH"
 if [ ! -x "$HOME/.local/bin/hermes" ]; then
   curl -fsSL https://hermes-agent.nousresearch.com/install.sh -o /tmp/hermes-install.sh
-  bash /tmp/hermes-install.sh --non-interactive --skip-browser > /tmp/hermes-install.log 2>&1 || {
+  # The browser tools are wanted (web search, page reading), so no --skip-browser:
+  # that flag records an opt-out that later installs and updates honour.
+  bash /tmp/hermes-install.sh --non-interactive > /tmp/hermes-install.log 2>&1 || {
     echo "installer failed — last lines:"; grep -vE "^ +[a-z]+: +[0-9.]+%" /tmp/hermes-install.log | tail -20; exit 1; }
 fi
 hermes --version | head -1'
 
-say "Adding the voice and edge-tts extras (Whisper + speech)"
+say "Adding the voice, edge-tts and browser extras"
 remote 'export PATH="$HOME/.local/bin:$PATH"
 hermes pm install --extra voice --extra edge-tts >/tmp/hermes-voice.log 2>&1 || {
   grep -vE "^ +[a-z]+: +[0-9.]+%" /tmp/hermes-voice.log | tail -20; exit 1; }
-echo "  ✓ voice extras ready"'
+# The pinned Chromium behind web_search / web_extract / the browser toolset.
+# Naming it explicitly is what undoes an earlier `--skip-browser` opt-out.
+hermes pm install agent-browser >/tmp/hermes-browser.log 2>&1 || {
+  grep -vE "^ +[a-z]+: +[0-9.]+%" /tmp/hermes-browser.log | tail -20; exit 1; }
+echo "  ✓ voice + browser extras ready"
+hermes tools list 2>/dev/null | grep -iE "web |browser " | sed "s/^/  /"'
 
 say "Configuring model, API server, voice and WhatsApp"
 put "${REPO_ROOT}/deploy/hermes-setup.sh" /tmp/hermes-setup.sh
