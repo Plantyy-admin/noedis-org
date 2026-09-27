@@ -82,8 +82,12 @@ timestamped backup first.
 
 ## 2. Views
 
-The top navigation leads with **STRUCTURE**, which is the panel the founder asked for:
-organisation *and* company units in one place.
+The **bridge** at the top is a three-part grid: the mark, wordmark and the
+`COMPANY` subtitle on the left; the six stop switchers in the middle; the uplink
+read-out, the roster size and **ODHLÁSIT SE** on the right. The cockpit wears the
+same instrument language as the NOEDIS STATS deck — midnight glass, a blueprint
+field with corner glows, one accent variable per surface (`--nd-accent`, `--c`)
+and read-outs in wide-tracked micro caps.
 
 | View | What it shows |
 |------|---------------|
@@ -98,7 +102,9 @@ organisation *and* company units in one place.
 
 | Requirement | Implementation |
 |-------------|----------------|
-| Compact top bar **36 px** | `#top-nav { height: 36px }`, views sized `calc(100vh - 36px)` |
+| Brand **left** — mark, wordmark, `COMPANY` | `.nav-brand` (grid column 1), gradient wordmark + amber micro-caps subtitle |
+| Switchers **centre** | `.nav-tabs` (grid column `auto`), violet gradient key pills, active key lit |
+| Sign-out **right** | `.nav-status` → `#nav-logout`, magenta key that ends the server session |
 | Auto-refresh **STRUCTURE 5 s / DASHBOARD 4 s / INBOX 6 s** | one `setInterval` per view in `app.js` |
 | **60 fps** canvas | `requestAnimationFrame` loop in `gameplay.js` |
 | All views read the Paperclip API | proxied through `/noedis/api/*` with the board key added server-side |
@@ -269,19 +275,55 @@ cd command-center && npm install && npm start
 
 ---
 
+## 7b. The sign-in gate
+
+The cockpit holds the board API key and can create work that spends real money, so
+it is gated by its own session screen (`lib/auth.js`, `lib/login-page.js`).
+
+- `GET /noedis/login` — the sign-in screen, self-contained so it needs no assets.
+- `POST /noedis/login` — constant-time credential check, then a signed cookie.
+- `GET|POST /noedis/logout` — clears the cookie; the bridge's **ODHLÁSIT SE** calls it.
+- `/noedis/health` stays open so monitoring works without a session.
+
+The cookie is an HMAC-signed payload (`{user, exp}`) keyed with
+`NOEDIS_SESSION_SECRET`; there is no session store, so a restart cannot resurrect a
+revoked token. Sign-in attempts are capped at 10 per 15 minutes per client.
+
+**This replaced Caddy's HTTP basic auth.** Basic auth has no working sign-out — the
+browser keeps replaying the credentials — so the header's ODHLÁSIT SE button could
+never have ended a session. `deploy/deploy-command-center.sh` therefore strips
+`NOEDIS_AUTH_USER` / `NOEDIS_AUTH_HASH` before calling `caddy-command-center.py`, and
+the operator is prompted exactly once, by the cockpit.
+
+**The gate fails open on purpose.** With no `NOEDIS_AUTH_PASS` (or
+`NOEDIS_AUTH_PASS_HASH`) the cockpit is published unprotected rather than locking the
+founder out; the boot log states which it is:
+
+```
+[noedis] Auth        : ON (user "noedis")
+```
+
+A 401 from the gate carries `X-Noedis-Auth: required`. Upstream Paperclip 401/403
+responses are re-mapped to 502 by `sendError`, so a broken board key can never be
+mistaken for an expired session.
+
+---
+
 ## 8. Verifying
 
 ```bash
-node command-center/test/smoke.mjs https://noedis.org
+NOEDIS_AUTH_USER=noedis NOEDIS_AUTH_PASS=… \
+  node command-center/test/smoke.mjs https://noedis.org
 ```
 
-Drives a real browser against a real deployment and asserts 21 properties: the
-the structure counters, the org tree, the seven departments of §4.1 and their heads,
-that each of the 21 specialists appears in exactly one team and no head leaks into
-teams, the 24-row dashboard roster, the `pi_local` runtime readout, the four INBOX
-categories, the chat dropdown, the ten GAMEPLAY floors in order, the embedded
-Paperclip iframe, and that the cockpit itself logs no console errors. Screenshots land
-in `command-center/test/out/` (`node test/shots.mjs`).
+Drives a real browser against a real deployment and asserts 32 properties: that the
+gate accepts the operator, that the bridge renders the `COMPANY` subtitle and a
+sign-out control, the structure counters, the org tree, the seven departments of §4.1
+and their heads, that each of the 21 specialists appears in exactly one team and no
+head leaks into teams, the 24-row dashboard roster, the `pi_local` runtime readout,
+the four INBOX categories, the chat dropdown, the ten GAMEPLAY floors in order, the
+embedded Paperclip iframe, that the cockpit itself logs no console errors, and that
+sign-out really ends the session. Screenshots land in `command-center/test/out/`.
 
 ---
 
@@ -296,11 +338,18 @@ in `command-center/test/out/` (`node test/shots.mjs`).
 | `NOEDIS_COMPANY_ID` | NOEDIS company UUID | which company to show |
 | `NOEDIS_PAPERCLIP_UI_URL` | `https://www.noedis.org` | iframe target for the PAPERCLIP tab |
 | `NOEDIS_POLL_MS` | `4000` | live polling interval |
+| `NOEDIS_AUTH_USER` | — | operator name; the gate is off while unset |
+| `NOEDIS_AUTH_PASS` | — | plaintext password, compared in constant time |
+| `NOEDIS_AUTH_PASS_HASH` | — | scrypt `salt:hash` alternative to `NOEDIS_AUTH_PASS` |
+| `NOEDIS_SESSION_SECRET` | per-boot random | cookie signing key; without it a restart signs everyone out |
+| `NOEDIS_SESSION_HOURS` | `12` | session lifetime |
 
-`command-center/.env` is git-ignored and holds the board key in production. Note that
-**the board key is still a weak, human-chosen default** — rotating it is worthwhile, but it
-must be rotated in Paperclip and `command-center/.env` together. It is deliberately not
-reproduced in this repository.
+`command-center/.env` is git-ignored and holds the board key and the operator
+password in production; `deploy/.vps.env` (also git-ignored) holds the values the
+deploy script writes into it. Note that **the board key is still a weak,
+human-chosen default** — rotating it is worthwhile, but it must be rotated in
+Paperclip and `command-center/.env` together. It is deliberately not reproduced in
+this repository.
 
 ---
 

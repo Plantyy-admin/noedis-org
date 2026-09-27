@@ -1,5 +1,9 @@
 import { chromium } from 'playwright';
 
+// The founder password is never stored in the repo.
+const ADMIN_PASS = process.env.NOEDIS_ADMIN_PASS;
+if (!ADMIN_PASS) throw new Error('set NOEDIS_ADMIN_PASS');
+
 const INVITE_URL = 'http://127.0.0.1:3100/invite/pcp_bootstrap_ebf75869ae6961b6979d6814bc8bc3efc36b222fe4bd1fab';
 
 async function main() {
@@ -14,7 +18,7 @@ async function main() {
   // Fill in the signup form
   await page.fill('#invite-name', 'Founder');
   await page.fill('#invite-email', 'founder@noedis.org');
-  await page.fill('#invite-password', '__REDACTED__');
+  await page.fill('#invite-password', ADMIN_PASS);
   
   console.log('Form filled, clicking Create account...');
   

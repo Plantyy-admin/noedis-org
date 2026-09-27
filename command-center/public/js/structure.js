@@ -8,6 +8,9 @@ import { esc, statusClass, setText, designation } from './util.js';
 const expanded = new Set();
 let expandMode = 'default'; // 'default' | 'all' | 'none'
 let searchQuery = '';
+/* CELÁ ORGANIZACE — draw the canvas as one centred chart (every department,
+   division, team and agent) instead of the indented tree. */
+let fullOrg = false;
 
 export function setStructureSearch(q) {
   searchQuery = String(q || '').trim().toLowerCase();
@@ -17,6 +20,9 @@ export function getStructureSearch() {
 }
 export function setExpandMode(mode) {
   expandMode = mode;
+}
+export function setFullOrg(on) {
+  fullOrg = Boolean(on);
 }
 export function toggleNode(key, fallbackOpen) {
   if (expanded.has(key)) expanded.delete(key);
@@ -71,15 +77,6 @@ export function renderOrg(model) {
   const exec = model.executive;
   const noe = exec.find((e) => e.key === 'noe');
   const rest = exec.filter((e) => e.key !== 'noe');
-  // The nine-floor picture of the summary: seven departments, each led by one
-  // of the existing agents (its department head).
-  const heads = model.departments.map((d) => ({
-    name: d.head,
-    dept: d.name,
-    color: d.color,
-    icon: d.icon,
-    agent: d.headAgent,
-  }));
 
   const card = (title, sub, status, cls, color) => `
     <div class="org-card ${cls}"${color ? ` style="--c:${esc(color)}"` : ''}>
@@ -121,19 +118,12 @@ export function renderOrg(model) {
 
       <div class="org-connector"><span class="org-vline"></span><span class="org-hline"></span></div>
 
-      <div class="org-boards-label">DEPARTMENT HEADS · ${heads.length}</div>
-      <div class="org-boards">
-        ${heads
-          .map((b) => `
-            <div class="org-board${b.agent ? '' : ' missing'}" style="--c:${esc(b.color)}">
-              <div class="org-board-top">
-                <span class="org-dot ${statusClass(b.agent?.status)}"></span>
-                <span class="org-board-name">${esc(b.dept)}</span>
-              </div>
-              <div class="org-board-agent">${esc(b.agent?.name || b.name)}</div>
-            </div>`)
-          .join('')}
-      </div>
+      <div class="org-boards-label">DEPARTMENT HEADS · ${model.departments.length}</div>
+      ${fullOrg
+        ? renderOrgChart(model)
+        : `<div class="org-tree">
+        ${model.departments.map((dept) => renderOrgDepartment(dept)).join('')}
+      </div>`}
     </div>
 
     ${model.unassigned.length ? `
@@ -148,6 +138,191 @@ export function renderOrg(model) {
         </div>
       </div>` : ''}
   `;
+}
+
+/* ── ORG canvas: departments → divisions → teams → agents ────────
+   The canvas shows the whole company as one connected tree so the
+   structure is legible without switching to the detailed list below.
+   Each level is a node; children hang off a rail under their parent. */
+
+function countTeams(dept) {
+  return dept.divisions.reduce((n, v) => n + v.teams.length, 0);
+}
+function countAgents(dept) {
+  return dept.divisions.reduce(
+    (n, v) => n + v.teams.reduce((m, t) => m + t.members.length, 0),
+    0,
+  );
+}
+function countVacancies(dept) {
+  return dept.divisions.reduce(
+    (n, v) => n + v.teams.reduce((m, t) => m + t.vacancies.length, 0),
+    0,
+  );
+}
+
+/* "3 divize · 6 týmů · 3 agenti" — Czech plural for the small counts here. */
+function plural(n, one, few, many) {
+  if (n === 1) return `${n} ${one}`;
+  if (n >= 2 && n <= 4) return `${n} ${few}`;
+  return `${n} ${many}`;
+}
+
+function renderOrgDepartment(dept) {
+  const teams = countTeams(dept);
+  const agents = countAgents(dept);
+  const vacancies = countVacancies(dept);
+  const meta = [
+    plural(dept.divisions.length, 'divize', 'divize', 'divizí'),
+    plural(teams, 'tým', 'týmy', 'týmů'),
+    plural(agents, 'agent', 'agenti', 'agentů'),
+  ];
+  if (vacancies) meta.push(plural(vacancies, 'volné místo', 'volná místa', 'volných míst'));
+
+  return `
+    <div class="org-branch" style="--c:${esc(dept.color)}">
+      <div class="org-board org-node-dept${dept.headAgent ? '' : ' missing'}">
+        <div class="org-board-top">
+          <span class="org-dot ${statusClass(dept.headAgent?.status)}"></span>
+          <span class="org-board-name">${esc(dept.name)}</span>
+          <span class="org-node-meta">${esc(meta.join(' · '))}</span>
+        </div>
+        <div class="org-board-agent">${esc(dept.headAgent?.name || dept.head)}</div>
+      </div>
+      <div class="org-kids">
+        ${dept.divisions.map((div) => renderOrgDivision(dept, div)).join('')}
+      </div>
+    </div>`;
+}
+
+function renderOrgDivision(dept, div) {
+  const meta = [plural(div.teams.length, 'tým', 'týmy', 'týmů'), plural(div.agentCount, 'agent', 'agenti', 'agentů')];
+  if (div.vacancyCount) meta.push(plural(div.vacancyCount, 'volné místo', 'volná místa', 'volných míst'));
+
+  return `
+    <div class="org-branch">
+      <div class="org-node org-node-div">
+        <span class="org-node-name">${esc(div.name)}</span>
+        <span class="org-node-meta">${esc(meta.join(' · '))}</span>
+      </div>
+      <div class="org-kids">
+        ${div.teams.map((team) => renderOrgTeam(team)).join('')}
+      </div>
+    </div>`;
+}
+
+function renderOrgTeam(team) {
+  const members = team.members
+    .map(
+      (m) => `
+        <div class="org-node org-node-agent">
+          <span class="org-dot ${statusClass(m.status)}"></span>
+          <span class="org-node-name">${esc(m.name)}</span>
+          <span class="org-node-model">${esc(m.adapterConfig?.model || '')}</span>
+          <span class="org-node-role">${esc(designation(m))}</span>
+        </div>`,
+    )
+    .join('');
+
+  const vacancies = team.vacancies
+    .map(
+      (v) => `
+        <div class="org-node org-node-agent vacancy">
+          <span class="vac-dot">◇</span>
+          <span class="org-node-name">${esc(v)}</span>
+          <span class="org-node-role">lazy — neinstantováno</span>
+        </div>`,
+    )
+    .join('');
+
+  const meta = [plural(team.members.length, 'agent', 'agenti', 'agentů')];
+  if (team.vacancies.length) meta.push(plural(team.vacancies.length, 'volné místo', 'volná místa', 'volných míst'));
+
+  return `
+    <div class="org-branch">
+      <div class="org-node org-node-team">
+        <span class="org-node-name">${esc(team.name)}</span>
+        <span class="org-node-meta">${esc(meta.join(' · '))}</span>
+      </div>
+      ${members || vacancies ? `<div class="org-kids">${members}${vacancies}</div>` : ''}
+    </div>`;
+}
+
+/* ── CELÁ ORGANIZACE: one centred chart ────────────────────────
+   Departments sit on top and every level hangs centred under its parent, drawn
+   in the same connector language as the executive cards above. The whole
+   company is wider than the panel on purpose, so the chart scrolls sideways. */
+
+function ocCard({ name, sub, meta, status, color, cls = '', dot = false }) {
+  return `
+    <div class="oc-card ${cls}"${color ? ` style="--c:${esc(color)}"` : ''}>
+      <span class="oc-card-head">
+        ${dot ? `<span class="org-dot ${statusClass(status)}"></span>` : ''}
+        <span class="oc-card-name">${esc(name)}</span>
+      </span>
+      ${sub ? `<span class="oc-card-sub">${esc(sub)}</span>` : ''}
+      ${meta ? `<span class="oc-card-meta">${esc(meta)}</span>` : ''}
+    </div>`;
+}
+
+function renderOrgChart(model) {
+  const branches = model.departments
+    .map((dept) => {
+      const divisions = dept.divisions
+        .map((div) => {
+          const teams = div.teams
+            .map((team) => {
+              const leaves = [
+                ...team.members.map((m) =>
+                  ocCard({ name: m.name, sub: designation(m), status: m.status, cls: 'oc-agent', dot: true }),
+                ),
+                ...team.vacancies.map((v) => ocCard({ name: v, sub: 'lazy', cls: 'oc-agent oc-vacancy' })),
+              ];
+              const teamCard = ocCard({
+                name: team.name,
+                meta: plural(team.members.length, 'agent', 'agenti', 'agentů'),
+                cls: 'oc-team',
+              });
+              return `<li>${teamCard}${
+                leaves.length ? `<ul>${leaves.map((l) => `<li>${l}</li>`).join('')}</ul>` : ''
+              }</li>`;
+            })
+            .join('');
+          const divCard = ocCard({
+            name: div.name,
+            meta: plural(div.agentCount, 'agent', 'agenti', 'agentů'),
+            cls: 'oc-div',
+          });
+          return `<li>${divCard}${teams ? `<ul>${teams}</ul>` : ''}</li>`;
+        })
+        .join('');
+      const deptMeta = [
+        plural(dept.divisions.length, 'divize', 'divize', 'divizí'),
+        plural(countTeams(dept), 'tým', 'týmy', 'týmů'),
+        plural(countAgents(dept), 'agent', 'agenti', 'agentů'),
+      ].join(' · ');
+      const deptCard = ocCard({
+        name: dept.name,
+        sub: dept.headAgent?.name || dept.head,
+        meta: deptMeta,
+        status: dept.headAgent?.status,
+        color: dept.color,
+        cls: 'oc-dept',
+        dot: true,
+      });
+      return `<li>${deptCard}${divisions ? `<ul>${divisions}</ul>` : ''}</li>`;
+    })
+    .join('');
+
+  return `
+    <div class="org-chart-scroll">
+      <ul class="org-chart">${branches}</ul>
+    </div>
+    <p class="org-chart-hint">
+      Vodorovně posuňte pro zbytek organizace —
+      ${model.counts.departments} oddělení · ${model.counts.divisions} divizí ·
+      ${model.counts.teams} týmů · ${model.counts.agents} agentů
+    </p>`;
 }
 
 /* ── JEDNOTKY SPOLEČNOSTI ────────────────────────────────────── */

@@ -6,7 +6,11 @@
    ever sees /noedis/api/*.
 
    Routes
-     GET  /noedis/health              liveness + Paperclip uplink state
+     GET  /noedis/login               sign-in screen (open)
+     POST /noedis/login               credential check -> session cookie
+     GET  /noedis/logout              end the session, back to the sign-in screen
+     POST /noedis/logout              same, as called by the header button
+     GET  /noedis/health              liveness + Paperclip uplink state (open)
      GET  /noedis/api/blueprint       canonical MASTER v0.3.0 org blueprint
      GET  /noedis/api/overview        single bundle for first paint
      GET  /noedis/api/company         Paperclip company record
@@ -26,6 +30,8 @@ import http from 'node:http';
 import { WebSocketServer } from 'ws';
 import { config, readBlueprint, log } from './lib/config.js';
 import { PaperclipClient, PaperclipError } from './lib/paperclip.js';
+import { createAuth } from './lib/auth.js';
+import { renderLoginPage } from './lib/login-page.js';
 
 const paperclip = new PaperclipClient({
   baseUrl: config.paperclip.baseUrl,
@@ -34,14 +40,76 @@ const paperclip = new PaperclipClient({
   timeoutMs: config.paperclip.timeoutMs,
 });
 
+const auth = createAuth(config.auth);
+
 const app = express();
 const server = http.createServer(app);
 app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: '32kb' }));
+
+/* ─── the gate ───────────────────────────────────────────────
+   Installed before every route so no panel, asset or socket can be
+   read without a session. Disabled entirely when no password is set. */
+app.use(auth.middleware);
+
+const clientIp = (req) =>
+  String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || 'local';
+
+app.get('/noedis/login', (req, res) => {
+  if (auth.isAuthed(req)) return res.redirect(302, auth.safeNext(req.query.next || '/'));
+  const locked = auth.throttled(clientIp(req));
+  res
+    .status(locked ? 429 : 200)
+    .type('html')
+    .send(renderLoginPage({ next: auth.safeNext(req.query.next || '/'), locked }));
+});
+
+app.post('/noedis/login', (req, res) => {
+  const ip = clientIp(req);
+  const next = auth.safeNext(req.body?.next || req.query.next || '/');
+  const username = String(req.body?.username || '');
+  const password = String(req.body?.password || '');
+
+  const locked = auth.throttled(ip);
+  if (locked) {
+    return res
+      .status(429)
+      .type('html')
+      .send(renderLoginPage({ next, user: username, locked }));
+  }
+
+  if (!auth.checkCredentials(username, password)) {
+    auth.noteFailure(ip);
+    log(`AUTH: failed sign-in for "${username}" from ${ip}`);
+    return res
+      .status(401)
+      .type('html')
+      .send(renderLoginPage({ next, user: username, error: 'Nesprávné jméno nebo heslo.' }));
+  }
+
+  auth.resetFailures(ip);
+  auth.issue(req, res);
+  log(`AUTH: ${username} signed in from ${ip}`);
+  res.redirect(303, next);
+});
+
+const logout = (req, res) => {
+  auth.clear(req, res);
+  if (String(req.headers.accept || '').includes('application/json')) {
+    return res.json({ ok: true, login: '/noedis/login' });
+  }
+  res.redirect(303, '/noedis/login');
+};
+app.get('/noedis/logout', logout);
+app.post('/noedis/logout', logout);
 
 /* ─── helpers ────────────────────────────────────────────────── */
 
 function sendError(res, err, fallbackStatus = 502) {
-  const status = err instanceof PaperclipError ? err.status || fallbackStatus : 500;
+  let status = err instanceof PaperclipError ? err.status || fallbackStatus : 500;
+  // 401 belongs to the cockpit's own gate (`X-Noedis-Auth`), so an upstream
+  // rejection must never reuse it — the UI would read it as "signed out".
+  if (status === 401 || status === 403) status = 502;
   res.status(status).json({
     error: err?.message || 'Unexpected error',
     path: err?.path || null,
@@ -74,7 +142,7 @@ app.get('/noedis/health', route(async (_req, res) => {
   res.json({
     status: 'ok',
     service: 'noedis-command-center',
-    version: '0.4.0',
+    version: '0.5.0',
     blueprintVersion: readBlueprintSafe()?.version ?? null,
     paperclip: {
       ...paperclip.status(),
@@ -297,6 +365,11 @@ server.on('upgrade', (request, socket, head) => {
   }
 
   if (pathname === '/noedis/ws') {
+    if (!auth.isAuthed(request)) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');
+      socket.destroy();
+      return;
+    }
     wss.handleUpgrade(request, socket, head, (ws) => {
       wsClients.add(ws);
       ws.send(JSON.stringify({
@@ -325,12 +398,15 @@ server.listen(config.port, config.host, () => {
     0,
   );
 
-  log(`Command Center v0.4.0 listening on http://${config.host}:${config.port}`);
+  log(`Command Center v0.5.0 listening on http://${config.host}:${config.port}`);
   log(`Paperclip   : ${config.paperclip.baseUrl}`);
   log(`Company     : ${config.paperclip.companyId}`);
   log(`API key     : ${config.paperclip.apiKey ? 'configured' : 'MISSING (set PAPERCLIP_API_KEY)'}`);
   log(`Paperclip UI: ${config.paperclipUiUrl}`);
   log(`Blueprint   : ${deptCount} departments / ${divisionCount} divisions / ${teamCount} teams`);
+  log(
+    `Auth        : ${auth.enabled ? `ON (user "${config.auth.user}")` : 'OFF — the cockpit is public'}`,
+  );
 });
 
 if (!paperclip.configured) {

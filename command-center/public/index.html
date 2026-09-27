@@ -3,297 +3,352 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0a0f" />
-  <title>NOEDIS Command Center</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='24' font-size='24'>◆</text></svg>" />
-  <link rel="stylesheet" href="css/style.css" />
+  <meta name="theme-color" content="#050b18" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>NOEDIS COMPANY — Command Deck</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='24' font-size='24' fill='%237fe9ff'>&#9670;</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=VT323&family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <!-- ─── TOP NAV ─── -->
+  <!-- ─── COMMAND BRIDGE ───────────────────────────────────────
+       Left: mark + wordmark + COMPANY.
+       Centre: the six stop switchers.
+       Right: uplink read-out and the way out. -->
   <nav id="top-nav">
     <div class="nav-brand">
-      <span class="nav-logo">◆ NOEDIS</span>
-      <span class="nav-version">v0.4.0</span>
+      <img class="nav-swan" src="assets/swan.png" alt="" width="193" height="256" />
+      <span class="nav-brand-text">
+        <img class="nav-title" src="assets/noedis-wordmark.png" alt="NOEDIS" width="240" height="44" />
+        <small class="nav-sub">COMPANY</small>
+      </span>
     </div>
 
-    <div class="nav-tabs" role="tablist">
-      <button class="nav-tab active" role="tab" aria-selected="true" data-view="structure" title="Org + jednotky společnosti">
-        <span class="tab-icon">▦</span>
-        <span class="tab-label">STRUCTURE</span>
-      </button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-view="chat" title="Zadat práci">
-        <span class="tab-icon">💬</span>
-        <span class="tab-label">CHAT</span>
-      </button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-view="paperclip" title="Paperclip UI">
-        <span class="tab-icon">⊞</span>
-        <span class="tab-label">PAPERCLIP</span>
-      </button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-view="gameplay" title="Stanice">
-        <span class="tab-icon">◈</span>
-        <span class="tab-label">GAMEPLAY</span>
-      </button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-view="dashboard" title="Metriky">
-        <span class="tab-icon">▤</span>
-        <span class="tab-label">DASHBOARD</span>
-      </button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-view="inbox" title="Reporty">
-        <span class="tab-icon">📥</span>
+    <div class="nav-tabs" role="tablist" aria-label="Sekce kokpitu">
+      <button class="nav-tab" role="tab" aria-selected="false" data-view="inbox" title="Reporty od RENE">
+        <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3v7" />
+          <path d="m8.7 7.2 3.3 3.3 3.3-3.3" />
+          <path d="M4.5 13H8l1.6 2.6h4.8L16 13h3.5" />
+          <path d="M4.5 13v4.6A2.4 2.4 0 0 0 6.9 20h10.2a2.4 2.4 0 0 0 2.4-2.4V13" />
+        </svg>
         <span class="tab-label">INBOX</span>
         <span class="tab-badge" id="inbox-badge" hidden>0</span>
+      </button>
+
+      <button class="nav-tab" role="tab" aria-selected="false" data-view="dashboard" title="Metriky a runtime">
+        <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3.6 18.4a9.6 9.6 0 1 1 16.8 0" />
+          <path d="M12 14.4 16.4 9.9" />
+          <circle cx="12" cy="14.4" r="1.4" />
+        </svg>
+        <span class="tab-label">DASHBOARD</span>
+      </button>
+
+      <button class="nav-tab active" role="tab" aria-selected="true" data-view="structure" title="Org + jednotky společnosti">
+        <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="9.2" y="3" width="5.6" height="4.2" rx="1.2" />
+          <rect x="2.8" y="16.8" width="5.6" height="4.2" rx="1.2" />
+          <rect x="15.6" y="16.8" width="5.6" height="4.2" rx="1.2" />
+          <path d="M12 7.2v4.4" />
+          <path d="M5.6 11.6h12.8" />
+          <path d="M5.6 11.6v5.2" />
+          <path d="M18.4 11.6v5.2" />
+        </svg>
+        <span class="tab-label">STRUCTURE</span>
+      </button>
+
+      <button class="nav-tab" role="tab" aria-selected="false" data-view="gameplay" title="Stanice">
+        <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 12h4" />
+          <path d="M8 10v4" />
+          <path d="M15.2 13h.01" />
+          <path d="M18.2 11h.01" />
+          <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258a4 4 0 0 0-.017-.152A4 4 0 0 0 17.32 5z" />
+        </svg>
+        <span class="tab-label">GAMEPLAY</span>
+      </button>
+
+      <button class="nav-tab" role="tab" aria-selected="false" data-view="paperclip" title="Paperclip nativní UI">
+        <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+        </svg>
+        <span class="tab-label">PAPERCLIP</span>
+      </button>
+
+      <button class="nav-tab" role="tab" aria-selected="false" data-view="chat" title="Zadat práci">
+        <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 14.5a2.5 2.5 0 0 1-2.5 2.5H8l-5 4V5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5z" />
+          <path d="M8.5 10h.01" />
+          <path d="M12 10h.01" />
+          <path d="M15.5 10h.01" />
+        </svg>
+        <span class="tab-label">CHAT</span>
       </button>
     </div>
 
     <div class="nav-status">
-      <span id="nav-uplink" class="status-dot red" title="Paperclip uplink">●</span>
-      <span id="nav-uplink-text" class="nav-uplink-text">connecting…</span>
+      <span class="nav-uplink" title="Stav spojení s Paperclipsem">
+        <span id="nav-uplink" class="status-dot red">●</span>
+        <span id="nav-uplink-text" class="nav-uplink-text">connecting…</span>
+      </span>
       <span id="nav-agent-count" class="nav-agents">—</span>
+      <button id="nav-logout" class="nav-logout" type="button" title="Ukončit relaci a vrátit se na přihlášení">
+        <span class="nav-logout-icon" aria-hidden="true">⏻</span>
+        <span class="nav-logout-label">ODHLÁSIT SE</span>
+      </button>
     </div>
   </nav>
 
-  <!-- ─── VIEW: STRUCTURE ─── -->
-  <section id="view-structure" class="view active">
-    <div class="structure-wrap">
-      <header class="struct-head">
-        <div class="struct-title">
-          <h1>ORGANIZACE <span id="struct-source">· MASTER v0.3.0</span></h1>
-          <div class="struct-meta" id="struct-meta"></div>
-        </div>
-        <div class="struct-tools">
-          <input id="struct-search" type="search" placeholder="hledat útvar nebo agenta…" autocomplete="off" />
-          <button class="btn-mini" data-expand="all">ROZBALIT</button>
-          <button class="btn-mini" data-expand="none">SBALIT</button>
-        </div>
-      </header>
-
-      <section class="struct-block">
-        <h2 class="struct-block-title"><span class="bt-mark">▦</span> ORG — VEDENÍ SPOLEČNOSTI</h2>
-        <p class="struct-block-sub">FOUNDER → NOE (Senior Advisor) → CODY (Right Hand) + RENE (Left Hand) → 7 departmentů</p>
-        <div id="org-tree" class="org-tree"></div>
-      </section>
-
-      <section class="struct-block">
-        <h2 class="struct-block-title"><span class="bt-mark">▣</span> JEDNOTKY SPOLEČNOSTI</h2>
-        <p class="struct-block-sub">Department → Division → Team → Agenti. Neobsazené útvary jsou označené jako neinstantované.</p>
-        <div id="units-tree" class="units-tree"></div>
-      </section>
-    </div>
-  </section>
-
-  <!-- ─── VIEW: CHAT ─── -->
-  <section id="view-chat" class="view">
-    <div class="chat-layout">
-      <aside class="chat-side">
-        <div class="chat-side-head">
-          <h3>▮ PŘÍJEMCE</h3>
-          <select id="chat-agent-select" class="chat-agent-select" aria-label="Vyber agenta"></select>
-          <input id="chat-filter" type="search" placeholder="filtr v seznamu…" autocomplete="off" />
-        </div>
-        <div id="chat-roster" class="chat-roster"></div>
-      </aside>
-      <div class="chat-main">
-        <header class="chat-head">
-          <div>
-            <div class="chat-to" id="chat-to">—</div>
-            <div class="chat-to-role" id="chat-to-role">Vyber agenta vlevo</div>
+  <main id="deck">
+    <!-- ─── VIEW: STRUCTURE ─── -->
+    <section id="view-structure" class="view active">
+      <div class="structure-wrap">
+        <header class="struct-head">
+          <div class="struct-title">
+            <span class="struct-kicker">◆ Organizace</span>
+            <h1>ORGANIZACE <span id="struct-source">· MASTER v0.3.0</span></h1>
+            <div class="struct-meta" id="struct-meta"></div>
           </div>
-          <label class="chat-wake">
-            <input type="checkbox" id="chat-wake" checked />
-            <span>probudit agenta</span>
-          </label>
+          <div class="struct-tools">
+            <input id="struct-search" type="search" placeholder="hledat útvar nebo agenta…" autocomplete="off" />
+            <button class="btn-mini" id="org-full" type="button" aria-pressed="false"
+              title="Zobrazit celou organizaci jako vycentrovaný diagram — oddělení, divize, týmy i agenty">CELÁ ORGANIZACE</button>
+            <button class="btn-mini" data-expand="all">ROZBALIT</button>
+            <button class="btn-mini" data-expand="none">SBALIT</button>
+          </div>
         </header>
-        <div id="chat-log" class="chat-log">
-          <div class="chat-empty">
-            <div class="chat-empty-icon">💬</div>
-            <div class="chat-empty-title">Zadání práce</div>
-            <div class="chat-empty-sub">
-              Práce se v Paperclipu zadává jako <em>issue</em> přiřazený agentovi.<br />
-              Vyber agenta a napiš zadání — vznikne úkol a agent se probudí.
+
+        <section class="struct-block">
+          <h2 class="struct-block-title"><span class="bt-mark">▦</span> ORG — VEDENÍ SPOLEČNOSTI</h2>
+          <p class="struct-block-sub">FOUNDER → NOE (Senior Advisor) → CODY (Right Hand) + RENE (Left Hand) → 7 departmentů</p>
+          <div id="org-tree" class="org-tree"></div>
+        </section>
+
+        <section class="struct-block">
+          <h2 class="struct-block-title"><span class="bt-mark">▣</span> JEDNOTKY SPOLEČNOSTI</h2>
+          <p class="struct-block-sub">Department → Division → Team → Agenti. Neobsazené útvary jsou označené jako neinstantované.</p>
+          <div id="units-tree" class="units-tree"></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ─── VIEW: CHAT ─── -->
+    <section id="view-chat" class="view">
+      <div class="chat-layout">
+        <aside class="chat-side">
+          <div class="chat-side-head">
+            <h3>▮ PŘÍJEMCE</h3>
+            <select id="chat-agent-select" class="chat-agent-select" aria-label="Vyber agenta"></select>
+            <input id="chat-filter" type="search" placeholder="filtr v seznamu…" autocomplete="off" />
+          </div>
+          <div id="chat-roster" class="chat-roster"></div>
+        </aside>
+        <div class="chat-main">
+          <header class="chat-head">
+            <div>
+              <div class="chat-to" id="chat-to">—</div>
+              <div class="chat-to-role" id="chat-to-role">Vyber agenta vlevo</div>
+            </div>
+            <label class="chat-wake">
+              <input type="checkbox" id="chat-wake" checked />
+              <span>probudit agenta</span>
+            </label>
+          </header>
+          <div id="chat-log" class="chat-log">
+            <div class="chat-empty">
+              <div class="chat-empty-icon">◈</div>
+              <div class="chat-empty-title">Zadání práce</div>
+              <div class="chat-empty-sub">
+                Práce se v Paperclipu zadává jako <em>issue</em> přiřazený agentovi.<br />
+                Vyber agenta a napiš zadání — vznikne úkol a agent se probudí.
+              </div>
+            </div>
+          </div>
+          <form id="chat-form" class="chat-form">
+            <textarea id="chat-input" rows="3" placeholder="Napiš zadání… (Enter odešle, Shift+Enter nový řádek)" disabled></textarea>
+            <div class="chat-actions">
+              <select id="chat-priority" title="Priorita">
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+                <option value="critical">critical</option>
+                <option value="low">low</option>
+              </select>
+              <button type="submit" id="chat-send" disabled>ODESLAT ▸</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── VIEW: PAPERCLIP ─── -->
+    <section id="view-paperclip" class="view">
+      <div class="iframe-bar">
+        <span id="iframe-note">Paperclip nativní UI</span>
+        <a id="iframe-open" href="#" target="_blank" rel="noopener">otevřít v nové kartě ↗</a>
+      </div>
+      <div class="iframe-container">
+        <iframe id="paperclip-iframe" title="Paperclip" loading="lazy"
+          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+      </div>
+    </section>
+
+    <!-- ─── VIEW: GAMEPLAY ─── -->
+    <section id="view-gameplay" class="view">
+      <div class="gameplay-layout">
+        <div class="station-view">
+          <canvas id="station-canvas"></canvas>
+          <div class="station-hud">
+            <span class="hud-corner tl">┌</span>
+            <span class="hud-corner tr">┐</span>
+            <span class="hud-corner bl">└</span>
+            <span class="hud-corner br">┘</span>
+            <span class="hud-label">NOEDIS STATION · SECTOR 1</span>
+            <span class="hud-status" id="station-status">● STANDBY</span>
+          </div>
+        </div>
+        <aside class="crew-rail">
+          <div class="crew-head">
+            <h3>▮ CREW</h3>
+            <span id="crew-summary">0 / 0</span>
+          </div>
+          <div id="crew-list" class="crew-list"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ─── VIEW: DASHBOARD ─── -->
+    <section id="view-dashboard" class="view">
+      <div class="dash-grid">
+        <div class="dash-card" style="--nd-accent:#7fe9ff">
+          <div class="card-head">AGENTS</div>
+          <div class="card-body">
+            <div class="metric-row">
+              <div class="metric"><span class="metric-value" id="m-agents-active">0</span><span class="metric-label">Celkem</span></div>
+              <div class="metric"><span class="metric-value" id="m-agents-running">0</span><span class="metric-label">Běží</span></div>
+              <div class="metric"><span class="metric-value" id="m-agents-paused">0</span><span class="metric-label">Pozastaveno</span></div>
+              <div class="metric"><span class="metric-value warn" id="m-agents-error">0</span><span class="metric-label">Chyba</span></div>
             </div>
           </div>
         </div>
-        <form id="chat-form" class="chat-form">
-          <textarea id="chat-input" rows="3" placeholder="Napiš zadání… (Enter odešle, Shift+Enter nový řádek)" disabled></textarea>
-          <div class="chat-actions">
-            <select id="chat-priority" title="Priorita">
-              <option value="medium">medium</option>
-              <option value="high">high</option>
-              <option value="critical">critical</option>
-              <option value="low">low</option>
-            </select>
-            <button type="submit" id="chat-send" disabled>ODESLAT ▸</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </section>
 
-  <!-- ─── VIEW: PAPERCLIP ─── -->
-  <section id="view-paperclip" class="view">
-    <div class="iframe-bar">
-      <span id="iframe-note">Paperclip nativní UI</span>
-      <a id="iframe-open" href="#" target="_blank" rel="noopener">otevřít v nové kartě ↗</a>
-    </div>
-    <div class="iframe-container">
-      <iframe id="paperclip-iframe" title="Paperclip" loading="lazy"
-        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
-    </div>
-  </section>
-
-  <!-- ─── VIEW: GAMEPLAY ─── -->
-  <section id="view-gameplay" class="view">
-    <div class="gameplay-layout">
-      <div class="station-view">
-        <canvas id="station-canvas"></canvas>
-        <div class="station-hud">
-          <span class="hud-corner tl">┌</span>
-          <span class="hud-corner tr">┐</span>
-          <span class="hud-corner bl">└</span>
-          <span class="hud-corner br">┘</span>
-          <span class="hud-label">NOEDIS STATION · SECTOR 1</span>
-          <span class="hud-status" id="station-status">● STANDBY</span>
-        </div>
-      </div>
-      <aside class="crew-rail">
-        <div class="crew-head">
-          <h3>▮ CREW</h3>
-          <span id="crew-summary">0 / 0</span>
-        </div>
-        <div id="crew-list" class="crew-list"></div>
-      </aside>
-    </div>
-  </section>
-
-  <!-- ─── VIEW: DASHBOARD ─── -->
-  <section id="view-dashboard" class="view">
-    <div class="dash-grid">
-      <div class="dash-card">
-        <div class="card-head">AGENTS</div>
-        <div class="card-body">
-          <div class="metric-row">
-            <div class="metric"><span class="metric-value" id="m-agents-active">0</span><span class="metric-label">Celkem</span></div>
-            <div class="metric"><span class="metric-value" id="m-agents-running">0</span><span class="metric-label">Běží</span></div>
-            <div class="metric"><span class="metric-value" id="m-agents-paused">0</span><span class="metric-label">Pozastaveno</span></div>
-            <div class="metric"><span class="metric-value warn" id="m-agents-error">0</span><span class="metric-label">Chyba</span></div>
+        <div class="dash-card" style="--nd-accent:#63dda8">
+          <div class="card-head">TASKS</div>
+          <div class="card-body">
+            <div class="metric-row">
+              <div class="metric"><span class="metric-value" id="m-tasks-open">0</span><span class="metric-label">Otevřené</span></div>
+              <div class="metric"><span class="metric-value" id="m-tasks-progress">0</span><span class="metric-label">V řešení</span></div>
+              <div class="metric"><span class="metric-value warn" id="m-tasks-blocked">0</span><span class="metric-label">Blokované</span></div>
+              <div class="metric"><span class="metric-value" id="m-tasks-done">0</span><span class="metric-label">Hotové</span></div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="dash-card">
-        <div class="card-head">TASKS</div>
-        <div class="card-body">
-          <div class="metric-row">
-            <div class="metric"><span class="metric-value" id="m-tasks-open">0</span><span class="metric-label">Otevřené</span></div>
-            <div class="metric"><span class="metric-value" id="m-tasks-progress">0</span><span class="metric-label">V řešení</span></div>
-            <div class="metric"><span class="metric-value warn" id="m-tasks-blocked">0</span><span class="metric-label">Blokované</span></div>
-            <div class="metric"><span class="metric-value" id="m-tasks-done">0</span><span class="metric-label">Hotové</span></div>
+        <div class="dash-card" style="--nd-accent:#ffd23f">
+          <div class="card-head">COSTS</div>
+          <div class="card-body">
+            <div class="metric-row">
+              <div class="metric"><span class="metric-value" id="m-cost-spend">$0</span><span class="metric-label">Útrata</span></div>
+              <div class="metric"><span class="metric-value" id="m-cost-budget">$0</span><span class="metric-label">Rozpočet</span></div>
+              <div class="metric"><span class="metric-value" id="m-cost-util">0%</span><span class="metric-label">Využití</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card" style="--nd-accent:#dd397b">
+          <div class="card-head">PENDING</div>
+          <div class="card-body">
+            <div class="metric-row">
+              <div class="metric"><span class="metric-value" id="m-pending-approvals">0</span><span class="metric-label">Schválení</span></div>
+              <div class="metric"><span class="metric-value warn" id="m-pending-incidents">0</span><span class="metric-label">Incidenty</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card dash-full" style="--nd-accent:#4aa8ff">
+          <div class="card-head">RUNTIME — každý agent jede pi_local → OpenRouter</div>
+          <div class="card-body">
+            <div class="dash-table">
+              <div class="dash-row"><span class="dash-key">Adapter</span><span class="dash-val" id="rt-adapter">—</span></div>
+              <div class="dash-row"><span class="dash-key">Provider</span><span class="dash-val" id="rt-provider">—</span></div>
+              <div class="dash-row"><span class="dash-key">Model</span><span class="dash-val" id="rt-model">—</span></div>
+              <div class="dash-row"><span class="dash-key">Credential</span><span class="dash-val" id="rt-credential">—</span></div>
+              <div class="dash-row"><span class="dash-key">Drift</span><span class="dash-val" id="rt-drift">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card dash-full" style="--nd-accent:#b07cff">
+          <div class="card-head">COMPANY</div>
+          <div class="card-body">
+            <div class="dash-table">
+              <div class="dash-row"><span class="dash-key">ID</span><span class="dash-val" id="dash-company-id">—</span></div>
+              <div class="dash-row"><span class="dash-key">Status</span><span class="dash-val" id="dash-company-status">—</span></div>
+              <div class="dash-row"><span class="dash-key">Issue Prefix</span><span class="dash-val" id="dash-company-prefix">—</span></div>
+              <div class="dash-row"><span class="dash-key">Created</span><span class="dash-val" id="dash-company-created">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card dash-full" style="--nd-accent:#7fe9ff">
+          <div class="card-head">AGENT ROSTER</div>
+          <div class="card-body">
+            <table class="dash-table-agent">
+              <thead>
+                <tr><th>Jméno</th><th>Status</th><th>Označení</th><th>Útvar</th><th>Adapter</th><th>Model</th></tr>
+              </thead>
+              <tbody id="agent-tbody">
+                <tr><td colspan="6" class="empty-td">Načítám…</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="dash-card">
-        <div class="card-head">COSTS</div>
-        <div class="card-body">
-          <div class="metric-row">
-            <div class="metric"><span class="metric-value" id="m-cost-spend">$0</span><span class="metric-label">Útrata</span></div>
-            <div class="metric"><span class="metric-value" id="m-cost-budget">$0</span><span class="metric-label">Rozpočet</span></div>
-            <div class="metric"><span class="metric-value" id="m-cost-util">0%</span><span class="metric-label">Využití</span></div>
+    <!-- ─── VIEW: INBOX ─── -->
+    <section id="view-inbox" class="view">
+      <div class="inbox-wrap">
+        <header class="struct-head">
+          <div class="struct-title">
+            <span class="struct-kicker">◆ Reporty</span>
+            <h1>INBOX <span>· RENE → NOE → FOUNDER</span></h1>
+            <div class="struct-meta">
+              <span>Kanál reportů: <strong>RENE (Left Hand)</strong></span>
+              <span>Pouze: <strong>DONE · DECISION · RISK · RELEASE</strong></span>
+            </div>
+          </div>
+          <div class="struct-tools">
+            <button class="btn-mini" id="inbox-refresh">OBNOVIT</button>
+          </div>
+        </header>
+        <div class="inbox-grid">
+          <div class="dash-card" style="--nd-accent:#63dda8">
+            <div class="card-head"><span class="rep-mark done">✔</span> DONE <span class="card-count" id="inbox-done-count">0</span></div>
+            <div class="card-body" id="inbox-done"></div>
+          </div>
+          <div class="dash-card" style="--nd-accent:#ffd23f">
+            <div class="card-head"><span class="rep-mark decision">?</span> DECISION <span class="card-count" id="inbox-decision-count">0</span></div>
+            <div class="card-body" id="inbox-decision"></div>
+          </div>
+          <div class="dash-card" style="--nd-accent:#dd397b">
+            <div class="card-head"><span class="rep-mark risk">!</span> RISK <span class="card-count" id="inbox-risk-count">0</span></div>
+            <div class="card-body" id="inbox-risk"></div>
+          </div>
+          <div class="dash-card" style="--nd-accent:#7fe9ff">
+            <div class="card-head"><span class="rep-mark release">▲</span> RELEASE <span class="card-count" id="inbox-release-count">0</span></div>
+            <div class="card-body" id="inbox-release"></div>
+          </div>
+          <div class="dash-card dash-full" style="--nd-accent:#b07cff">
+            <div class="card-head">AKTIVITA — co přišlo od RENE</div>
+            <div class="card-body" id="inbox-activity"></div>
           </div>
         </div>
       </div>
-
-      <div class="dash-card">
-        <div class="card-head">PENDING</div>
-        <div class="card-body">
-          <div class="metric-row">
-            <div class="metric"><span class="metric-value" id="m-pending-approvals">0</span><span class="metric-label">Schválení</span></div>
-            <div class="metric"><span class="metric-value warn" id="m-pending-incidents">0</span><span class="metric-label">Incidenty</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="dash-card dash-full">
-        <div class="card-head">RUNTIME — každý agent jede pi_local → OpenRouter</div>
-        <div class="card-body">
-          <div class="dash-table">
-            <div class="dash-row"><span class="dash-key">Adapter</span><span class="dash-val" id="rt-adapter">—</span></div>
-            <div class="dash-row"><span class="dash-key">Provider</span><span class="dash-val" id="rt-provider">—</span></div>
-            <div class="dash-row"><span class="dash-key">Model</span><span class="dash-val" id="rt-model">—</span></div>
-            <div class="dash-row"><span class="dash-key">Credential</span><span class="dash-val" id="rt-credential">—</span></div>
-            <div class="dash-row"><span class="dash-key">Drift</span><span class="dash-val" id="rt-drift">—</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="dash-card dash-full">
-        <div class="card-head">COMPANY</div>
-        <div class="card-body">
-          <div class="dash-table">
-            <div class="dash-row"><span class="dash-key">ID</span><span class="dash-val" id="dash-company-id">—</span></div>
-            <div class="dash-row"><span class="dash-key">Status</span><span class="dash-val" id="dash-company-status">—</span></div>
-            <div class="dash-row"><span class="dash-key">Issue Prefix</span><span class="dash-val" id="dash-company-prefix">—</span></div>
-            <div class="dash-row"><span class="dash-key">Created</span><span class="dash-val" id="dash-company-created">—</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="dash-card dash-full">
-        <div class="card-head">AGENT ROSTER</div>
-        <div class="card-body">
-          <table class="dash-table-agent">
-            <thead>
-              <tr><th>Jméno</th><th>Status</th><th>Označení</th><th>Útvar</th><th>Adapter</th><th>Model</th></tr>
-            </thead>
-            <tbody id="agent-tbody">
-              <tr><td colspan="6" class="empty-td">Načítám…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── VIEW: INBOX ─── -->
-  <section id="view-inbox" class="view">
-    <div class="inbox-wrap">
-      <header class="struct-head">
-        <div class="struct-title">
-          <h1>INBOX <span>· RENE → NOE → FOUNDER</span></h1>
-          <div class="struct-meta">
-            <span>Kanál reportů: <strong>RENE (Left Hand)</strong></span>
-            <span>Pouze: <strong>DONE · DECISION · RISK · RELEASE</strong></span>
-          </div>
-        </div>
-        <div class="struct-tools">
-          <button class="btn-mini" id="inbox-refresh">OBNOVIT</button>
-        </div>
-      </header>
-      <div class="inbox-grid">
-        <div class="dash-card">
-          <div class="card-head"><span class="rep-mark done">✔</span> DONE <span class="card-count" id="inbox-done-count">0</span></div>
-          <div class="card-body" id="inbox-done"></div>
-        </div>
-        <div class="dash-card">
-          <div class="card-head"><span class="rep-mark decision">?</span> DECISION <span class="card-count" id="inbox-decision-count">0</span></div>
-          <div class="card-body" id="inbox-decision"></div>
-        </div>
-        <div class="dash-card">
-          <div class="card-head"><span class="rep-mark risk">!</span> RISK <span class="card-count" id="inbox-risk-count">0</span></div>
-          <div class="card-body" id="inbox-risk"></div>
-        </div>
-        <div class="dash-card">
-          <div class="card-head"><span class="rep-mark release">▲</span> RELEASE <span class="card-count" id="inbox-release-count">0</span></div>
-          <div class="card-body" id="inbox-release"></div>
-        </div>
-        <div class="dash-card dash-full">
-          <div class="card-head">AKTIVITA — co přišlo od RENE</div>
-          <div class="card-body" id="inbox-activity"></div>
-        </div>
-      </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <div id="toast-container"></div>
 

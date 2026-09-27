@@ -1,4 +1,4 @@
-# NOEDIS Command Center v0.4.0
+# NOEDIS Command Center v0.5.0
 
 **STRUCTURE · CHAT · PAPERCLIP · GAMEPLAY · DASHBOARD · INBOX**
 
@@ -14,11 +14,33 @@ one org root (`NOE`), zero runtime drift.
 
 ---
 
+## The bridge
+
+The header is a three-part grid, in the order the founder asked for:
+
+```
+┌──────────────────────┬───────────────────────────────┬──────────────────────────┐
+│ ◆  NOEDIS            │  STRUCTURE CHAT PAPERCLIP     │  ● LIVE  24 AGENTŮ       │
+│    COMPANY           │  GAMEPLAY DASHBOARD INBOX     │  ⏻ ODHLÁSIT SE           │
+└──────────────────────┴───────────────────────────────┴──────────────────────────┘
+```
+
+- **Left** — mark, gradient wordmark, and the amber `COMPANY` subtitle.
+- **Centre** — the six stop switchers as violet gradient keys; the active key is lit.
+- **Right** — the Paperclip uplink read-out, the roster size, and the sign-out key.
+
+The whole cockpit wears the NOEDIS STATS instrument language: midnight glass, a
+blueprint field with corner glows and a slow aurora, a per-surface accent variable
+(`--nd-accent` / `--c`) driving every edge and glow, and read-outs in wide-tracked
+micro caps. Palette and rules: `public/css/style.css` §00.
+
+---
+
 ## Quick start
 
 ```bash
 npm install
-cp .env.example .env      # then set PAPERCLIP_API_KEY
+cp .env.example .env      # then set PAPERCLIP_API_KEY and the sign-in pair
 npm start                 # http://127.0.0.1:3200
 ```
 
@@ -29,11 +51,21 @@ ssh -N -L 127.0.0.1:13100:127.0.0.1:3100 -p 501 vpsadmin@76.13.154.124 &
 # .env -> PAPERCLIP_URL=http://127.0.0.1:13100
 ```
 
-Verify a running instance in a real browser (21 assertions + screenshots):
+Verify a running instance in a real browser (32 assertions + screenshots):
 
 ```bash
-npm test -- https://noedis.org
+NOEDIS_AUTH_USER=noedis NOEDIS_AUTH_PASS=… npm test -- https://noedis.org
 ```
+
+---
+
+## Sign-in
+
+The cockpit carries its own gate (`lib/auth.js`): a signed session cookie, a
+self-contained sign-in screen, and a working **ODHLÁSIT SE**. It replaced Caddy's
+HTTP basic auth, which the browser cannot sign out of. With no `NOEDIS_AUTH_PASS`
+set the gate is off and the cockpit is published openly — the boot log says which.
+See [`docs/COMMAND-CENTER.md` §7b](../docs/COMMAND-CENTER.md).
 
 ---
 
@@ -60,15 +92,17 @@ command-center/
 ├── server.js              Express app — the only holder of the Paperclip key
 ├── lib/
 │   ├── config.js          env-driven configuration + blueprint loader
+│   ├── auth.js            session gate: signed cookie, credential check, throttling
+│   ├── login-page.js      the sign-in screen (self-contained HTML)
 │   └── paperclip.js       authenticated Paperclip API client
 ├── config/
 │   ├── org-blueprint.json canonical org (summary v1.0 §4.1 + §4.3) + model policy
 │   └── org-blueprint.yaml generated readable mirror
 ├── public/
-│   ├── index.html         shell + top navigation
-│   ├── css/style.css
+│   ├── index.html         shell + the bridge
+│   ├── css/style.css      the Command Deck design system
 │   └── js/
-│       ├── app.js         bootstrap, navigation, live wiring
+│       ├── app.js         bootstrap, navigation, sign-out, live wiring
 │       ├── api.js         fetch wrappers + WebSocket
 │       ├── store.js       blueprint × Paperclip merge
 │       ├── structure.js   STRUCTURE panel
@@ -78,7 +112,7 @@ command-center/
 │       ├── gameplay.js    GAMEPLAY canvas
 │       └── util.js
 └── test/
-    ├── smoke.mjs          Playwright smoke test (26 assertions)
+    ├── smoke.mjs          Playwright smoke test (32 assertions, signs in first)
     └── shots.mjs          one screenshot per view
 ```
 

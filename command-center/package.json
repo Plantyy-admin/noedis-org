@@ -1,6 +1,6 @@
 {
   "name": "noedis-command-center",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "NOEDIS Autonomous Company Command Center — STRUCTURE | CHAT | PAPERCLIP | GAMEPLAY | DASHBOARD | INBOX",

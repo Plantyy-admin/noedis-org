@@ -2,8 +2,20 @@
 
 const BASE = '/noedis';
 
+/** An expired session must not leave a half-drawn cockpit on screen.
+ *  Only the cockpit's own gate counts — a Paperclip 401 that travelled
+ *  through a passthrough route is an uplink problem, not a sign-out. */
+function bounceToLogin(res) {
+  if (res.status === 401 && res.headers.get('x-noedis-auth') === 'required') {
+    location.replace('/noedis/login');
+    return true;
+  }
+  return false;
+}
+
 async function get(path) {
   const res = await fetch(`${BASE}${path}`, { headers: { Accept: 'application/json' } });
+  if (bounceToLogin(res)) throw new Error('unauthenticated');
   const text = await res.text();
   let data = null;
   if (text) {
@@ -28,6 +40,7 @@ async function post(path, body) {
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify(body ?? {}),
   });
+  if (bounceToLogin(res)) throw new Error('unauthenticated');
   const text = await res.text();
   let data = null;
   if (text) {

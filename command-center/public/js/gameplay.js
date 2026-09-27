@@ -144,7 +144,7 @@ function loop() {
   const h = canvas.height / (window.devicePixelRatio || 1);
   t += 1 / 60;
 
-  ctx.fillStyle = '#07070f';
+  ctx.fillStyle = '#04080f';
   ctx.fillRect(0, 0, w, h);
   drawStarfield(w, h);
 

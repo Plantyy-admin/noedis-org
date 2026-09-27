@@ -6,7 +6,13 @@
 #
 # The app is installed to /srv/noedis/command-center, runs as the
 # noedis-command-center systemd service on 127.0.0.1:3200, and is
-# published by Caddy at https://noedis.org/command/
+# published by Caddy at the root of https://noedis.org/.
+#
+# Sign-in: the cockpit now carries its OWN session gate (a signed
+# cookie, `lib/auth.js`) instead of Caddy's HTTP basic auth, because
+# basic auth has no working sign-out. Credentials are written into the
+# server-side .env below; Caddy's basic_auth is deliberately left off so
+# the operator is prompted once, by the cockpit's own screen.
 #
 # Idempotent: safe to re-run. Caddy is backed up and validated
 # before being reloaded.
@@ -27,6 +33,36 @@ VPS_PASS="${VPS_PASS:?set VPS_PASS in deploy/.vps.env or the environment}"
 COMPANY_ID="${NOEDIS_COMPANY_ID:-8b5aa752-5199-4f51-9a9c-817647ef1aae}"
 API_KEY="${PAPERCLIP_API_KEY:?set PAPERCLIP_API_KEY in deploy/.vps.env or the environment}"
 REMOTE_DIR="/srv/noedis/command-center"
+
+# ── cockpit sign-in ───────────────────────────────────────────
+# NOEDIS_AUTH_OFF=1 publishes the cockpit openly (private hosts only).
+AUTH_OFF="${NOEDIS_AUTH_OFF:-0}"
+AUTH_USER="${NOEDIS_AUTH_USER:-noedis}"
+AUTH_PASS="${NOEDIS_AUTH_PASS:-}"
+AUTH_SECRET="${NOEDIS_SESSION_SECRET:-}"
+AUTH_HOURS="${NOEDIS_SESSION_HOURS:-12}"
+
+if [[ "$AUTH_OFF" != "1" && -z "$AUTH_PASS" ]]; then
+  cat >&2 <<'MSG'
+ERROR: NOEDIS_AUTH_PASS is not set, so the cockpit would be published with no
+       sign-in at all. Put it in deploy/.vps.env (git-ignored):
+
+           NOEDIS_AUTH_USER='noedis'
+           NOEDIS_AUTH_PASS='...'
+           NOEDIS_SESSION_SECRET='...'
+
+       Or run with NOEDIS_AUTH_OFF=1 if this host is genuinely private.
+MSG
+  exit 1
+fi
+
+# A missing signing key would be regenerated every restart, silently signing
+# every operator out; make one here and keep it in deploy/.vps.env.
+if [[ "$AUTH_OFF" != "1" && -z "$AUTH_SECRET" ]]; then
+  AUTH_SECRET="$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+  printf "\nNOEDIS_SESSION_SECRET='%s'\n" "$AUTH_SECRET" >>"$VPS_ENV"
+  echo "▸ generated NOEDIS_SESSION_SECRET and appended it to deploy/.vps.env"
+fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -70,6 +106,10 @@ PAPERCLIP_API_KEY=$API_KEY
 NOEDIS_COMPANY_ID=$COMPANY_ID
 NOEDIS_PAPERCLIP_UI_URL=https://www.noedis.org
 NOEDIS_POLL_MS=4000
+NOEDIS_AUTH_USER=$AUTH_USER
+NOEDIS_AUTH_PASS=$AUTH_PASS
+NOEDIS_SESSION_SECRET=$AUTH_SECRET
+NOEDIS_SESSION_HOURS=$AUTH_HOURS
 ENV
 chmod 600 $REMOTE_DIR/.env
 
@@ -112,16 +152,21 @@ REMOTE
 
 say "Health check (direct)"
 remote "curl -s -m 10 http://127.0.0.1:3200/noedis/health | head -c 400; echo"
+remote "curl -s -m 10 -o /dev/null -w '  sign-in screen -> %{http_code}\n' http://127.0.0.1:3200/noedis/login"
 
-say "Publishing through Caddy at https://noedis.org/command/"
+say "Publishing through Caddy at the root of https://noedis.org/"
 sshpass -p "$VPS_PASS" scp "${SCP_OPTS[@]}" deploy/caddy-command-center.py "$VPS_USER@$VPS_HOST:/tmp/caddy-command-center.py"
+# No NOEDIS_AUTH_* is exported for this step on purpose: the cockpit gates
+# itself now, and Caddy's basic_auth would only add a second prompt that the
+# cockpit's own sign-out cannot clear.
 remote bash -s <<'REMOTE'
 set -euo pipefail
 CADDY=/etc/caddy/Caddyfile
 STAMP=$(date +%Y%m%d-%H%M%S)
 sudo cp "$CADDY" "/etc/caddy/Caddyfile.bak-command-center-$STAMP"
 
-sudo python3 /tmp/caddy-command-center.py "$CADDY"
+sudo env -u NOEDIS_AUTH_USER -u NOEDIS_AUTH_HASH -u NOEDIS_AUTH_REQUIRED \
+  python3 /tmp/caddy-command-center.py "$CADDY"
 
 if ! sudo caddy validate --config "$CADDY" --adapter caddyfile >/dev/null 2>&1; then
   echo "Caddy validation FAILED — restoring backup"
@@ -133,9 +178,19 @@ sleep 2
 systemctl is-active caddy
 REMOTE
 
-say "Verifying public URL"
-curl -s -m 15 -o /dev/null -w "  https://noedis.org/command/  -> %{http_code}\n" https://noedis.org/command/
-curl -s -m 15 -o /dev/null -w "  https://noedis.org/          -> %{http_code} (Paperclip, unchanged)\n" https://noedis.org/
-curl -s -m 15 https://noedis.org/command/noedis/health | head -c 300; echo
+say "Verifying public URLs"
+# Each probe is allowed to fail: a workstation that cannot reach the public host
+# must not turn a successful deploy into a non-zero exit.
+curl -s -m 20 -o /dev/null -w "  https://noedis.org/                -> %{http_code} %{redirect_url}\n" https://noedis.org/ || echo "  https://noedis.org/                -> unreachable from here"
+curl -s -m 20 -o /dev/null -w "  https://noedis.org/noedis/login    -> %{http_code}\n" https://noedis.org/noedis/login || echo "  https://noedis.org/noedis/login    -> unreachable from here"
+curl -s -m 20 -o /dev/null -w "  https://noedis.org/noedis/health   -> %{http_code}\n" https://noedis.org/noedis/health || echo "  https://noedis.org/noedis/health   -> unreachable from here"
+curl -s -m 20 -o /dev/null -w "  https://noedis.org/css/style.css   -> %{http_code} (302 while signed out)\n" https://noedis.org/css/style.css || echo "  https://noedis.org/css/style.css   -> unreachable from here"
+curl -s -m 20 -o /dev/null -w "  https://www.noedis.org/            -> %{http_code} (Paperclip)\n" https://www.noedis.org/ || echo "  https://www.noedis.org/            -> unreachable from here"
+
+if [[ "$AUTH_OFF" == "1" ]]; then
+  echo "  cockpit sign-in: OFF — published openly"
+else
+  echo "  cockpit sign-in: ON  — user '$AUTH_USER'"
+fi
 
 say "Done"

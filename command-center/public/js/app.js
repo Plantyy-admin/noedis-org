@@ -11,6 +11,7 @@ import {
   renderUnits,
   setStructureSearch,
   setExpandMode,
+  setFullOrg,
 } from './structure.js';
 import { renderDashboard } from './dashboard.js';
 import { renderInbox } from './inbox.js';
@@ -38,6 +39,7 @@ const state = {
 
 async function boot() {
   initNavigation();
+  initLogout();
   initGameplay();
   initChat({ toast });
   initStructureControls();
@@ -192,6 +194,27 @@ function applyUplink(status) {
   dot.title = status?.lastError || (ok ? 'Paperclip live' : 'Paperclip status unknown');
 }
 
+/* ── sign out ──────────────────────────────────────────────── */
+
+/**
+ * The header button ends the server session and returns to the gate.
+ * `location.replace` keeps the cockpit out of the back/forward history,
+ * so "back" cannot land on a page the session no longer owns.
+ */
+function initLogout() {
+  const btn = document.getElementById('nav-logout');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      await fetch('/noedis/logout', { method: 'POST', headers: { Accept: 'application/json' } });
+    } catch {
+      /* the redirect is the real exit — a network blip must not trap us here */
+    }
+    location.replace('/noedis/login');
+  });
+}
+
 /* ── navigation ────────────────────────────────────────────── */
 
 function initNavigation() {
@@ -239,6 +262,16 @@ function initStructureControls() {
         renderUnits(state.model);
       }
     });
+  });
+
+  /* CELÁ ORGANIZACE — swap the canvas between the indented tree and one
+     centred chart covering every department, division, team and agent. */
+  const orgFull = document.getElementById('org-full');
+  orgFull?.addEventListener('click', () => {
+    const on = orgFull.getAttribute('aria-pressed') !== 'true';
+    orgFull.setAttribute('aria-pressed', String(on));
+    setFullOrg(on);
+    if (state.model) renderOrg(state.model);
   });
 
   document.getElementById('inbox-refresh')?.addEventListener('click', refreshInbox);

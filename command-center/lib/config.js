@@ -59,6 +59,15 @@ export const config = {
   /** URL of the native Paperclip UI, used by the PAPERCLIP tab iframe. */
   paperclipUiUrl: env('NOEDIS_PAPERCLIP_UI_URL', 'https://www.noedis.org'),
 
+  /** Single-operator gate. Auth is off while no password of either form is set. */
+  auth: {
+    user: env('NOEDIS_AUTH_USER', ''),
+    pass: env('NOEDIS_AUTH_PASS', ''),
+    hash: env('NOEDIS_AUTH_PASS_HASH', ''),
+    secret: env('NOEDIS_SESSION_SECRET', ''),
+    sessionHours: Number(env('NOEDIS_SESSION_HOURS', 12)),
+  },
+
   pollIntervalMs: Number(env('NOEDIS_POLL_MS', 4000)),
   logLevel: env('NOEDIS_LOG_LEVEL', 'info'),
 };
