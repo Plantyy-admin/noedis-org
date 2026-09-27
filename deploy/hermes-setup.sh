@@ -39,6 +39,16 @@ hermes config set stt.local.model "$STT_MODEL" >/dev/null
 hermes config set tts.provider edge >/dev/null
 hermes config set tts.edge.voice "$TTS" >/dev/null
 
+# The smart-approval guardian asks an auxiliary LLM for a one-word verdict
+# with a hardcoded max_tokens=16. The main model here is a *reasoning*
+# model, so it spent the whole budget on hidden thinking and returned an
+# empty answer, which the guardian treats as "uncertain" and escalates to
+# the founder — every few tool calls, for calls that were never risky.
+# Turning off reasoning for this one task lets it answer inside the budget.
+# tools/approval_smart.py documents the same failure as upstream #117428.
+s "approvals: guardian verdicts without hidden reasoning"
+hermes config set auxiliary.approval.reasoning_effort none >/dev/null
+
 # Which channels end up live, derived from both flags rather than from
 # whichever one happens to be set.
 case "$WA_ON:$TG_TOKEN" in
