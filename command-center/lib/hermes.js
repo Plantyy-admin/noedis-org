@@ -195,12 +195,19 @@ export class HermesClient {
     return outPath;
   }
 
-  /** WhatsApp link state is a directory Hermes writes on a successful pair. */
+  /**
+   * WhatsApp link state. The session *directory* is created as soon as a
+   * pairing attempt starts, so its existence proves nothing — only the
+   * `creds.json` Hermes writes on a successful pair does. Mirrors
+   * WhatsAppPair.linked so the two never disagree in /voice/status.
+   */
   whatsapp() {
+    const sessionDir = this.sessionDir;
     try {
-      return { linked: fs.existsSync(this.sessionDir), sessionDir: this.sessionDir };
+      const creds = path.join(sessionDir, 'creds.json');
+      return { linked: fs.existsSync(creds) && fs.statSync(creds).size > 0, sessionDir };
     } catch {
-      return { linked: false, sessionDir: this.sessionDir };
+      return { linked: false, sessionDir };
     }
   }
 
