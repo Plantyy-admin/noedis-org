@@ -71,6 +71,21 @@ export function createAuth(cfg) {
   }
   const sessionMs = Math.max(1, Number(cfg.sessionHours) || 12) * 3600 * 1000;
 
+  /* The one route a local process may call without a session: Hermes hands a
+     task to NOE from its skill script. A bearer token, not a cookie, because
+     the caller is a script — and it opens exactly this path. */
+  const bridgeToken = String(cfg.bridgeToken || '');
+  const BRIDGE_PATH = '/noedis/api/voice/delegate';
+
+  function bridgeAuthorised(req) {
+    if (!bridgeToken) return false;
+    const header = String(req.headers.authorization || '');
+    if (!header.startsWith('Bearer ')) return false;
+    const supplied = header.slice(7).trim();
+    if (supplied.length !== bridgeToken.length) return false;
+    return crypto.timingSafeEqual(Buffer.from(supplied), Buffer.from(bridgeToken));
+  }
+
   /* Failed sign-ins, keyed by client. 10 tries per 15 minutes, then a
      quarter-hour cool-down — the cockpit only ever has one operator. */
   const attempts = new Map();
@@ -176,6 +191,7 @@ export function createAuth(cfg) {
 
     const path = req.path || '/';
     if (OPEN.some((re) => re.test(path))) return next();
+    if (path === BRIDGE_PATH && bridgeAuthorised(req)) return next();
     if (isAuthed(req)) return next();
 
     const wantsJson =

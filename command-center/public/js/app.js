@@ -16,6 +16,7 @@ import {
 import { renderDashboard } from './dashboard.js';
 import { renderInbox } from './inbox.js';
 import { initChat, setChatAgents } from './chat.js';
+import { initVoice, refreshVoice } from './voice.js';
 import { initGameplay, setGameplayModel, startGameplay, stopGameplay } from './gameplay.js';
 
 /* ── state ─────────────────────────────────────────────────── */
@@ -42,6 +43,7 @@ async function boot() {
   initLogout();
   initGameplay();
   initChat({ toast });
+  initVoice({ toast });
   initStructureControls();
   connectLiveSocket();
 
@@ -237,6 +239,7 @@ function showView(name) {
 
   if (name === 'inbox') refreshInbox();
   if (name === 'dashboard') refreshStructure();
+  if (name === 'chat') refreshVoice();
 }
 
 /* ── structure controls ────────────────────────────────────── */

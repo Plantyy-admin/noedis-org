@@ -88,3 +88,6 @@ deploy/.redact-patterns
 /cf-login-server.mjs
 /approve_cli.sh
 /connect_cli.sh
+
+# The Hermes/OpenRouter key the cockpit and the agent share.
+/docs/hermes-api.txt

@@ -135,50 +135,135 @@
       </div>
     </section>
 
-    <!-- ─── VIEW: CHAT ─── -->
+    <!-- ─── VIEW: CHAT — two modes behind one switcher ─── -->
     <section id="view-chat" class="view">
-      <div class="chat-layout">
-        <aside class="chat-side">
-          <div class="chat-side-head">
-            <h3>▮ PŘÍJEMCE</h3>
-            <select id="chat-agent-select" class="chat-agent-select" aria-label="Vyber agenta"></select>
-            <input id="chat-filter" type="search" placeholder="filtr v seznamu…" autocomplete="off" />
-          </div>
-          <div id="chat-roster" class="chat-roster"></div>
-        </aside>
-        <div class="chat-main">
-          <header class="chat-head">
-            <div>
-              <div class="chat-to" id="chat-to">—</div>
-              <div class="chat-to-role" id="chat-to-role">Vyber agenta vlevo</div>
+      <div class="mode-bar" role="tablist" aria-label="Režim zadávání">
+        <button class="mode-key active" role="tab" aria-selected="true" data-mode="text">
+          <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 14.5a2.5 2.5 0 0 1-2.5 2.5H8l-5 4V5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5z" />
+            <path d="M8.5 10h.01" /><path d="M12 10h.01" /><path d="M15.5 10h.01" />
+          </svg>
+          <span>CHAT</span>
+        </button>
+        <button class="mode-key" role="tab" aria-selected="false" data-mode="voice">
+          <svg class="mode-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="2.5" width="6" height="11" rx="3" />
+            <path d="M5.5 11a6.5 6.5 0 0 0 13 0" />
+            <path d="M12 17.5V21" /><path d="M8.5 21h7" />
+          </svg>
+          <span>VOICE</span>
+        </button>
+        <span class="mode-hint" id="mode-hint">Zadání práce agentovi v Paperclipu</span>
+      </div>
+
+      <div class="mode-pane active" data-pane="text">
+        <div class="chat-layout">
+          <aside class="chat-side">
+            <div class="chat-side-head">
+              <h3>▮ PŘÍJEMCE</h3>
+              <select id="chat-agent-select" class="chat-agent-select" aria-label="Vyber agenta"></select>
+              <input id="chat-filter" type="search" placeholder="filtr v seznamu…" autocomplete="off" />
             </div>
-            <label class="chat-wake">
-              <input type="checkbox" id="chat-wake" checked />
-              <span>probudit agenta</span>
-            </label>
-          </header>
-          <div id="chat-log" class="chat-log">
-            <div class="chat-empty">
-              <div class="chat-empty-icon">◈</div>
-              <div class="chat-empty-title">Zadání práce</div>
-              <div class="chat-empty-sub">
-                Práce se v Paperclipu zadává jako <em>issue</em> přiřazený agentovi.<br />
-                Vyber agenta a napiš zadání — vznikne úkol a agent se probudí.
+            <div id="chat-roster" class="chat-roster"></div>
+          </aside>
+          <div class="chat-main">
+            <header class="chat-head">
+              <div>
+                <div class="chat-to" id="chat-to">—</div>
+                <div class="chat-to-role" id="chat-to-role">Vyber agenta vlevo</div>
+              </div>
+              <label class="chat-wake">
+                <input type="checkbox" id="chat-wake" checked />
+                <span>probudit agenta</span>
+              </label>
+            </header>
+            <div id="chat-log" class="chat-log">
+              <div class="chat-empty">
+                <div class="chat-empty-icon">◈</div>
+                <div class="chat-empty-title">Zadání práce</div>
+                <div class="chat-empty-sub">
+                  Práce se v Paperclipu zadává jako <em>issue</em> přiřazený agentovi.<br />
+                  Vyber agenta a napiš zadání — vznikne úkol a agent se probudí.
+                </div>
               </div>
             </div>
+            <form id="chat-form" class="chat-form">
+              <textarea id="chat-input" rows="3" placeholder="Napiš zadání… (Enter odešle, Shift+Enter nový řádek)" disabled></textarea>
+              <div class="chat-actions">
+                <select id="chat-priority" title="Priorita">
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                  <option value="critical">critical</option>
+                  <option value="low">low</option>
+                </select>
+                <button type="submit" id="chat-send" disabled>ODESLAT ▸</button>
+              </div>
+            </form>
           </div>
-          <form id="chat-form" class="chat-form">
-            <textarea id="chat-input" rows="3" placeholder="Napiš zadání… (Enter odešle, Shift+Enter nový řádek)" disabled></textarea>
-            <div class="chat-actions">
-              <select id="chat-priority" title="Priorita">
-                <option value="medium">medium</option>
-                <option value="high">high</option>
-                <option value="critical">critical</option>
-                <option value="low">low</option>
-              </select>
-              <button type="submit" id="chat-send" disabled>ODESLAT ▸</button>
+        </div>
+      </div>
+
+      <!-- VOICE — the APEX orb stage with Hermes behind it -->
+      <div class="mode-pane" data-pane="voice">
+        <div class="voice-layout">
+          <div class="voice-stage">
+            <iframe id="apex-frame" title="APEX orb" loading="lazy" src="about:blank"></iframe>
+            <div class="voice-hud">
+              <span class="voice-hud-tag" id="voice-hud-tag">APEX · HERMES VOICE</span>
+              <span class="voice-hud-state" id="voice-hud-state">STANDBY</span>
             </div>
-          </form>
+            <div class="voice-centre">
+              <button id="voice-mic" class="voice-mic" type="button" aria-pressed="false" title="Klikni a mluv">
+                <span class="voice-mic-ring" aria-hidden="true"></span>
+                <svg class="mic-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="9" y="2.5" width="6" height="11" rx="3" />
+                  <path d="M5.5 11a6.5 6.5 0 0 0 13 0" />
+                  <path d="M12 17.5V21" /><path d="M8.5 21h7" />
+                </svg>
+              </button>
+              <div class="voice-mic-label" id="voice-mic-label">MLUVIT</div>
+              <div class="voice-status" id="voice-status">Připraveno</div>
+              <canvas id="voice-wave" class="voice-wave" aria-hidden="true"></canvas>
+            </div>
+          </div>
+
+          <aside class="voice-side">
+            <header class="voice-head">
+              <h3>▮ HERMES</h3>
+              <span class="hermes-state" id="hermes-state">—</span>
+            </header>
+
+            <!-- WhatsApp pairing — shown only while the bridge is unlinked -->
+            <div class="wa-pair" id="wa-pair" hidden>
+              <div class="wa-pair-head">
+                <span class="wa-pair-title" id="wa-pair-title">WhatsApp není připojený</span>
+                <button class="btn-mini" id="wa-start" type="button">PŘIPOJIT</button>
+                <button class="btn-mini" id="wa-stop" type="button" hidden>STOP</button>
+              </div>
+              <div class="wa-pair-body" id="wa-pair-body" hidden>
+                <img id="wa-qr" alt="QR kód pro spárování WhatsApp" />
+                <p class="wa-pair-help">
+                  V telefonu: <strong>WhatsApp → Nastavení → Spojená zařízení → Připojit zařízení</strong>
+                  a naskenuj tenhle kód. Platí ~20 s, obnovuje se sám.
+                </p>
+              </div>
+            </div>
+
+            <div class="voice-log" id="voice-log">
+              <div class="empty-note">Zatím nic. Zmáčkni MLUVIT, nebo to napiš dolů.</div>
+            </div>
+            <form id="voice-form" class="voice-form">
+              <input id="voice-text" type="text" placeholder="…nebo napiš text" autocomplete="off" />
+              <button type="submit" id="voice-send">POSLAT ▸</button>
+            </form>
+            <div class="voice-opts">
+              <label class="voice-tts">
+                <input type="checkbox" id="voice-tts-toggle" checked />
+                <span>mluvit odpovědi</span>
+              </label>
+              <button class="btn-mini" id="voice-open-apex" type="button">APEX V NOVÉ KARTĚ ↗</button>
+            </div>
+          </aside>
         </div>
       </div>
     </section>

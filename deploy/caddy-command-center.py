@@ -28,6 +28,10 @@ import sys
 
 COCKPIT = "127.0.0.1:3200"
 PAPERCLIP = "127.0.0.1:3100"
+# The APEX orb that fills the cockpit's VOICE panel. It is its own Next.js
+# service because the cockpit is plain ES modules while the orb is React 19 +
+# three.js; Caddy stitches the two together under one host.
+APEX = "127.0.0.1:3400"
 
 CC_START = "\t# >>> NOEDIS Command Center (managed) >>>"
 CC_END = "\t# <<< NOEDIS Command Center (managed) <<<"
@@ -76,6 +80,14 @@ COCKPIT_ROUTES = f"""{CC_START}
 
 \thandle /noedis/* {{
 {auth_directive("\t\t")}\t\treverse_proxy {COCKPIT}
+\t}}
+
+\t# The APEX orb behind the VOICE panel. handle_path is deliberately NOT used:
+\t# Next.js is built with basePath /voice, so it wants the prefix kept. The
+\t# matcher names both forms because `/voice/*` alone would not match `/voice`.
+\t@noedis_apex path /voice /voice/*
+\thandle @noedis_apex {{
+\t\treverse_proxy {APEX}
 \t}}
 {CC_END}
 """

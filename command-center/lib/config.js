@@ -5,6 +5,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -66,6 +67,35 @@ export const config = {
     hash: env('NOEDIS_AUTH_PASS_HASH', ''),
     secret: env('NOEDIS_SESSION_SECRET', ''),
     sessionHours: Number(env('NOEDIS_SESSION_HOURS', 12)),
+    /** Bearer token the local Hermes agent uses to hand a task to NOE. */
+    bridgeToken: env('NOEDIS_BRIDGE_TOKEN', ''),
+  },
+
+  /** Hermes Agent (Nous Research) — the voice + WhatsApp brain on this host. */
+  hermes: {
+    baseUrl: env('HERMES_API_URL', 'http://127.0.0.1:8642'),
+    apiKey: env('HERMES_API_KEY', ''),
+    model: env('HERMES_MODEL', 'hermes-agent'),
+    cli: env('HERMES_CLI', path.join(os.homedir(), '.local', 'bin', 'hermes')),
+    voiceLanguage: env('HERMES_VOICE_LANG', 'cs'),
+    ttsVoice: env('HERMES_TTS_VOICE', 'cs-CZ-VlastaNeural'),
+    /** The department head every delegated task is addressed to. */
+    noeAgentId: env('NOEDIS_NOE_AGENT_ID', '3aeb9559-c953-4e1e-b551-c8201554c98e'),
+    /** One JSON line per hand-off; the VOICE panel reports the newest one. */
+    delegationLog: env('NOEDIS_DELEGATION_LOG', ''),
+  },
+
+  /** Where the Baileys bridge and its saved WhatsApp session live. */
+  whatsapp: {
+    bridgeDir: env(
+      'WHATSAPP_BRIDGE_DIR',
+      path.join(os.homedir(), '.hermes', 'hermes-agent', 'scripts', 'whatsapp-bridge'),
+    ),
+    sessionPath: env(
+      'WHATSAPP_SESSION_DIR',
+      path.join(os.homedir(), '.hermes', 'platforms', 'whatsapp', 'session'),
+    ),
+    mode: env('WHATSAPP_MODE', 'self-chat'),
   },
 
   pollIntervalMs: Number(env('NOEDIS_POLL_MS', 4000)),

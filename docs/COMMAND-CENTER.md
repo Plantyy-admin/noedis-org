@@ -92,7 +92,7 @@ and read-outs in wide-tracked micro caps.
 | View | What it shows |
 |------|---------------|
 | **STRUCTURE** | Two blocks. **ORG — vedení společnosti**: `FOUNDER → NOE (Senior Advisor) → CODY (Right Hand) + RENE (Left Hand) → 7 department heads`, with live status. **JEDNOTKY SPOLEČNOSTI**: `Department → Division → Team → Agent`, expandable and searchable, with unstaffed teams marked *neinstantováno*. |
-| **CHAT** | Work intake with an **agent dropdown** covering every agent (§5.2). Paperclip models "talking to an agent" as creating an issue assigned to that agent and waking it, so the panel does exactly that: pick an agent, write the assignment, choose priority, optionally wake. |
+| **CHAT** | Two modes behind one switcher. **CHAT** is work intake with an **agent dropdown** covering every agent (§5.2): Paperclip models "talking to an agent" as creating an issue assigned to that agent and waking it, so the panel does exactly that. **VOICE** is a spoken loop with the Hermes agent — see §7c. |
 | **PAPERCLIP** | The native Paperclip UI embedded in an iframe, plus a link to open it standalone. |
 | **GAMEPLAY** | Isometric pixel-art station with **ten floors** — `NOE → CODY → RENE → VÝVOJ → INFRA → IT → MARKETING → LEGAL → FINANCE → LABS` — on a starfield, agents as glowing dots (squares for leads, circles for specialists), 60 fps. The crew rail lists the roster grouped by the same ten floors. |
 | **DASHBOARD** | Agent / task / cost metrics, the **runtime invariant readout** (adapter, provider, model, drift), company record and the full agent roster with each agent's unit. |
@@ -309,6 +309,82 @@ mistaken for an expired session.
 
 ---
 
+## 7c. Hermes — the voice and WhatsApp brain
+
+The CHAT stop carries a **CHAT | VOICE** switcher. CHAT is the original work
+intake (create an issue for one agent). VOICE is a spoken loop with **Hermes
+Agent** (Nous Research), the autonomous-agent framework installed on the same
+VPS, and it is the same agent the founder can reach on WhatsApp.
+
+```
+WhatsApp (self-chat, +420 721 982 621)
+        │  Baileys bridge, paired once by QR
+        ▼
+Hermes Agent (vpsadmin, ~/.hermes)          cockpit VOICE panel
+  ├─ LLM    OpenRouter                        ├─ mic → Whisper (local) → text
+  ├─ STT    faster-whisper, local, Czech       ├─ POST /noedis/api/voice/ask
+  ├─ TTS    Edge TTS, cs-CZ-VlastaNeural       ├─ reply + Edge TTS audio
+  ├─ API    127.0.0.1:8642, OpenAI-compatible  └─ APEX orb at /voice
+  └─ skill  noedis-company → delegate.py
+                    │  POST /noedis/api/voice/delegate  (bridge token)
+                    ▼
+        Paperclip issue assigned to NOE → NOE routes it on to CODY
+```
+
+**Why a model other than Hermes.** Every Hermes/Nous model on OpenRouter
+(`hermes-4-405b`, `hermes-3-*`) reports `supported_parameters` without `tools`,
+and an agent that cannot call tools cannot invoke the delegation skill, read a
+file or run a command. The **framework** is Hermes; the **model** is
+`~deepseek/deepseek-flash-latest` — the same family the company's Paperclip
+policy already pins, and tool-capable. Change it in `deploy/.vps.env`
+(`HERMES_MODEL_NAME`) and re-run `deploy/deploy-hermes.sh`.
+
+**The hand-off.** Hermes decides when something is real work and calls
+`~/.hermes/skills/noedis-company/delegate.py`, which POSTs to
+`/noedis/api/voice/delegate`. That is the one route a local script may call
+without a cockpit session: it is opened by `NOEDIS_BRIDGE_TOKEN`, compared in
+constant time, and it does exactly one thing — create an issue for NOE and wake
+him. Every hand-off appends a line to `/srv/noedis/logs/delegations.jsonl`, which
+is how the VOICE panel can show "PŘEDÁNO" for the turn that produced it.
+
+**Voice notes on WhatsApp** are transcribed by the same local Whisper, and TTS
+replies go back as audio attachments — both are Hermes features, not ours.
+
+**Deploying it.**
+
+```bash
+./deploy/deploy-hermes.sh     # install + configure + skill + gateway
+./deploy/deploy-apex.sh       # the orb behind the VOICE panel
+./deploy/deploy-command-center.sh
+```
+
+**Pairing WhatsApp** is the one step that needs a human. The QR rotates every
+~20 s, so it is not something to paste into a chat: the VOICE panel renders it
+live. `POST /noedis/api/voice/whatsapp/start` spawns Hermes' own bridge
+(`--pair-only --pair-json`), the raw QR payload is kept in memory, and
+`/noedis/api/voice/whatsapp/qr.png` serves it through `qrencode`. Scan it from
+**WhatsApp → Settings → Linked devices → Link a device**; on success the cockpit
+restarts the gateway so the session attaches, and the card disappears. The
+session lives in `~/.hermes/platforms/whatsapp/session` — treat it as a
+password.
+
+**APEX-UI** (`RubenM1990/APEX-UI`, MIT) is the orb in the stage. It is a Next.js
+15 app of its own, kept separate because the cockpit is plain ES modules. Two
+changes were needed: `basePath: "/voice"` so one host and one gate cover it, and
+a `postMessage` listener in `ApexWorld.tsx` so the orb follows the loop
+(`idle → listening → thinking → speaking`) instead of only reacting to a tap.
+Caddy routes `/voice` and `/voice/*` to it.
+
+**Rollback**
+
+```bash
+systemctl --user stop hermes-gateway && systemctl --user disable hermes-gateway
+sudo systemctl stop noedis-apex && sudo systemctl disable noedis-apex
+# the cockpit keeps working; the VOICE panel simply reports Hermes as offline
+```
+
+---
+
 ## 8. Verifying
 
 ```bash
@@ -343,6 +419,17 @@ sign-out really ends the session. Screenshots land in `command-center/test/out/`
 | `NOEDIS_AUTH_PASS_HASH` | — | scrypt `salt:hash` alternative to `NOEDIS_AUTH_PASS` |
 | `NOEDIS_SESSION_SECRET` | per-boot random | cookie signing key; without it a restart signs everyone out |
 | `NOEDIS_SESSION_HOURS` | `12` | session lifetime |
+| `HERMES_API_URL` | `http://127.0.0.1:8642` | Hermes' OpenAI-compatible API server |
+| `HERMES_API_KEY` | — | bearer token for that server (shared with Hermes) |
+| `HERMES_MODEL` | `hermes-agent` | the model name the API server advertises |
+| `HERMES_CLI` | `~/.local/bin/hermes` | the Hermes launcher (gateway restarts, diagnostics) |
+| `HERMES_VOICE_LANG` | `cs` | language handed to Whisper |
+| `HERMES_TTS_VOICE` | `cs-CZ-VlastaNeural` | Edge TTS voice for spoken replies |
+| `NOEDIS_NOE_AGENT_ID` | NOE's UUID | who every delegated task is addressed to |
+| `NOEDIS_BRIDGE_TOKEN` | — | lets the Hermes skill open `/noedis/api/voice/delegate` without a session |
+| `NOEDIS_DELEGATION_LOG` | `/srv/noedis/logs/delegations.jsonl` | one JSON line per hand-off |
+| `WHATSAPP_BRIDGE_DIR` | Hermes' `scripts/whatsapp-bridge` | where the Baileys bridge lives |
+| `WHATSAPP_SESSION_DIR` | `~/.hermes/platforms/whatsapp/session` | the paired session (**treat as a password**) |
 
 `command-center/.env` is git-ignored and holds the board key and the operator
 password in production; `deploy/.vps.env` (also git-ignored) holds the values the

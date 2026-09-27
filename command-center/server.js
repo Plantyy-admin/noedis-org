@@ -32,12 +32,32 @@ import { config, readBlueprint, log } from './lib/config.js';
 import { PaperclipClient, PaperclipError } from './lib/paperclip.js';
 import { createAuth } from './lib/auth.js';
 import { renderLoginPage } from './lib/login-page.js';
+import { HermesClient } from './lib/hermes.js';
+import { createVoiceApi } from './lib/voice-api.js';
+import { WhatsAppPairing } from './lib/whatsapp-pair.js';
+
+import path from 'node:path';
 
 const paperclip = new PaperclipClient({
   baseUrl: config.paperclip.baseUrl,
   apiKey: config.paperclip.apiKey,
   companyId: config.paperclip.companyId,
   timeoutMs: config.paperclip.timeoutMs,
+});
+
+const hermes = new HermesClient({
+  baseUrl: config.hermes.baseUrl,
+  apiKey: config.hermes.apiKey,
+  model: config.hermes.model,
+  cli: config.hermes.cli,
+  voice: { language: config.hermes.voiceLanguage, ttsVoice: config.hermes.ttsVoice },
+});
+
+const whatsapp = new WhatsAppPairing({
+  bridgeDir: config.whatsapp.bridgeDir,
+  sessionPath: config.whatsapp.sessionPath,
+  mode: config.whatsapp.mode,
+  hermesCli: config.hermes.cli,
 });
 
 const auth = createAuth(config.auth);
@@ -172,6 +192,23 @@ app.get('/noedis/api/blueprint', route(async (_req, res) => {
   }
   res.json(blueprint);
 }));
+
+/* ─── VOICE panel — Hermes Agent ───────────────────────────────
+   Speech and the agent itself both live in Hermes on this host, so the
+   cockpit only carries the audio and the text across. The delegate route is
+   the one path a local script may call with the bridge token instead of a
+   session: that is how Hermes hands a task to NOE. */
+app.use(
+  '/noedis/api/voice',
+  createVoiceApi({
+    hermes,
+    paperclip,
+    companyId: config.paperclip.companyId,
+    noeAgentId: config.hermes.noeAgentId,
+    delegationLog: config.hermes.delegationLog || path.join(config.root, 'delegations.jsonl'),
+    whatsapp,
+  }),
+);
 
 /* ─── Paperclip passthroughs ─────────────────────────────────── */
 
@@ -406,6 +443,14 @@ server.listen(config.port, config.host, () => {
   log(`Blueprint   : ${deptCount} departments / ${divisionCount} divisions / ${teamCount} teams`);
   log(
     `Auth        : ${auth.enabled ? `ON (user "${config.auth.user}")` : 'OFF — the cockpit is public'}`,
+  );
+  log(
+    `Hermes      : ${config.hermes.baseUrl} · key ${config.hermes.apiKey ? 'set' : 'MISSING'} · ` +
+      `model ${config.hermes.model} · whatsapp ${hermes.whatsapp().linked ? 'linked' : 'not linked'}`,
+  );
+  log(
+    `Voice       : STT ${config.hermes.voiceLanguage} (local Whisper) · TTS ${config.hermes.ttsVoice} · ` +
+      `NOE ${config.hermes.noeAgentId.slice(0, 8)}…`,
   );
 });
 

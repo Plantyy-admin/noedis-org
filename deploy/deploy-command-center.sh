@@ -42,6 +42,18 @@ AUTH_PASS="${NOEDIS_AUTH_PASS:-}"
 AUTH_SECRET="${NOEDIS_SESSION_SECRET:-}"
 AUTH_HOURS="${NOEDIS_SESSION_HOURS:-12}"
 
+# ── Hermes Agent bridge ───────────────────────────────────────
+# The voice panel talks to Hermes' OpenAI-compatible API server on the
+# loopback interface; the bridge token is what lets the agent hand a task to
+# NOE without holding a cockpit session.
+HERMES_KEY="${HERMES_API_KEY:-}"
+BRIDGE_TOKEN="${NOEDIS_BRIDGE_TOKEN:-}"
+NOE_AGENT_ID="${NOEDIS_NOE_AGENT_ID:-3aeb9559-c953-4e1e-b551-c8201554c98e}"
+if [[ -z "$HERMES_KEY" || -z "$BRIDGE_TOKEN" ]]; then
+  echo "WARNING: HERMES_API_KEY / NOEDIS_BRIDGE_TOKEN are not set — the VOICE panel" >&2
+  echo "         will report Hermes as offline. Set them in deploy/.vps.env." >&2
+fi
+
 if [[ "$AUTH_OFF" != "1" && -z "$AUTH_PASS" ]]; then
   cat >&2 <<'MSG'
 ERROR: NOEDIS_AUTH_PASS is not set, so the cockpit would be published with no
@@ -110,8 +122,18 @@ NOEDIS_AUTH_USER=$AUTH_USER
 NOEDIS_AUTH_PASS=$AUTH_PASS
 NOEDIS_SESSION_SECRET=$AUTH_SECRET
 NOEDIS_SESSION_HOURS=$AUTH_HOURS
+HERMES_API_URL=http://127.0.0.1:8642
+HERMES_API_KEY=$HERMES_KEY
+HERMES_MODEL=hermes-agent
+HERMES_CLI=/home/vpsadmin/.local/bin/hermes
+HERMES_VOICE_LANG=cs
+HERMES_TTS_VOICE=cs-CZ-VlastaNeural
+NOEDIS_NOE_AGENT_ID=$NOE_AGENT_ID
+NOEDIS_BRIDGE_TOKEN=$BRIDGE_TOKEN
+NOEDIS_DELEGATION_LOG=/srv/noedis/logs/delegations.jsonl
 ENV
 chmod 600 $REMOTE_DIR/.env
+sudo mkdir -p /srv/noedis/logs && sudo chown vpsadmin:vpsadmin /srv/noedis/logs
 
 cd $REMOTE_DIR
 if [ ! -d node_modules ]; then
