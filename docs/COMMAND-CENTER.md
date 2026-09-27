@@ -309,16 +309,16 @@ mistaken for an expired session.
 
 ---
 
-## 7c. Hermes — the voice and WhatsApp brain
+## 7c. Hermes — the voice and Telegram brain
 
 The CHAT stop carries a **CHAT | VOICE** switcher. CHAT is the original work
 intake (create an issue for one agent). VOICE is a spoken loop with **Hermes
 Agent** (Nous Research), the autonomous-agent framework installed on the same
-VPS, and it is the same agent the founder can reach on WhatsApp.
+VPS, and it is the same agent the founder can reach on Telegram.
 
 ```
-WhatsApp (self-chat, +420 721 982 621)
-        │  Baileys bridge, paired once by QR
+Telegram (@NOEDIS_bot, bot token from @BotFather)
+        │  long polling, allowlisted to one numeric user id
         ▼
 Hermes Agent (vpsadmin, ~/.hermes)          cockpit VOICE panel
   ├─ LLM    OpenRouter                        ├─ mic → Whisper (local) → text
@@ -330,6 +330,13 @@ Hermes Agent (vpsadmin, ~/.hermes)          cockpit VOICE panel
                     ▼
         Paperclip issue assigned to NOE → NOE routes it on to CODY
 ```
+
+**Telegram rather than WhatsApp.** WhatsApp through the Baileys bridge needs a
+QR scanned from the founder's phone before it works at all, and until that scan
+happens the platform sits unpaired — which parks it and leaves the whole gateway
+`DEGRADED`. Telegram needs no pairing: the token alone is the credential, so the
+channel is working the moment it is configured. The WhatsApp code is still in the
+tree and comes back by setting `WHATSAPP_ENABLED=true` in `deploy/.vps.env`.
 
 **Why a model other than Hermes.** Every Hermes/Nous model on OpenRouter
 (`hermes-4-405b`, `hermes-3-*`) reports `supported_parameters` without `tools`,
@@ -367,8 +374,9 @@ prompts. Instructions are deliberately outside the normal drift check (rewriting
 a prompt is a behaviour change, not a reconciliation), so without that flag a
 corrected prompt never reaches an agent that already exists.
 
-**Voice notes on WhatsApp** are transcribed by the same local Whisper, and TTS
-replies go back as audio attachments — both are Hermes features, not ours.
+**Voice notes** sent to Hermes on either channel are transcribed by the same local
+Whisper, and TTS replies go back as audio attachments — both are Hermes features,
+not ours.
 
 **Web search and browsing.** Hermes carries the `web` and `browser` toolsets, both
 enabled. They need the pinned Chromium that ships as the `agent-browser` tool, so
@@ -392,9 +400,21 @@ credential.
 ./deploy/deploy-command-center.sh
 ```
 
-**Pairing WhatsApp** is the one step that needs a human. The QR rotates every
-~20 s, so it is not something to paste into a chat: the VOICE panel renders it
-live. `POST /noedis/api/voice/whatsapp/start` spawns Hermes' own bridge
+**Telegram needs no pairing**, so the channel is live as soon as
+`TELEGRAM_BOT_TOKEN` is set. Two values live in `deploy/.vps.env` (git-ignored):
+the token from @BotFather, and `TELEGRAM_ALLOWED_USERS` — the founder's numeric
+Telegram id. The id is not optional: `hermes-setup.sh` refuses to write a token
+without an allowlist, because with none Hermes falls through to its own
+authorization and the bot answers anyone who finds it, and this bot has shell
+access. Find the id by messaging the bot and calling `getUpdates` once, before
+the gateway starts polling. `deploy-hermes.sh` drops any platform health record
+that belongs to a switched-off platform — see the comment there, the ordering
+against the gateway's own state writes is subtle.
+
+**If you do want WhatsApp**, set `WHATSAPP_ENABLED=true` in `deploy/.vps.env` and
+re-run the deploy. The QR rotates every ~20 s, so it is not something to paste
+into a chat: the VOICE panel renders it live.
+`POST /noedis/api/voice/whatsapp/start` spawns Hermes' own bridge
 (`--pair-only --pair-json`), the raw QR payload is kept in memory, and
 `/noedis/api/voice/whatsapp/qr.png` serves it through `qrencode`. Scan it from
 **WhatsApp → Settings → Linked devices → Link a device**; on success the cockpit
@@ -462,6 +482,9 @@ sign-out really ends the session. Screenshots land in `command-center/test/out/`
 | `NOEDIS_NOE_AGENT_ID` | NOE's UUID | who every delegated task is addressed to |
 | `NOEDIS_BRIDGE_TOKEN` | — | lets the Hermes skill open `/noedis/api/voice/delegate` without a session |
 | `NOEDIS_DELEGATION_LOG` | `/srv/noedis/logs/delegations.jsonl` | one JSON line per hand-off |
+| `TELEGRAM_BOT_TOKEN` | — | bot token from @BotFather (in `deploy/.vps.env`) |
+| `TELEGRAM_ALLOWED_USERS` | — | the only Telegram id the bot answers; required with the token |
+| `WHATSAPP_ENABLED` | `false` | set `true` to bring the QR pairing flow back |
 | `WHATSAPP_BRIDGE_DIR` | Hermes' `scripts/whatsapp-bridge` | where the Baileys bridge lives |
 | `WHATSAPP_SESSION_DIR` | `~/.hermes/platforms/whatsapp/session` | the paired session (**treat as a password**) |
 
