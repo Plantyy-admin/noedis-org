@@ -33,7 +33,14 @@ cd "$REPO_ROOT"
 OPENROUTER_KEY="${OPENROUTER_API_KEY:?set OPENROUTER_API_KEY in deploy/.vps.env}"
 HERMES_KEY="${HERMES_API_KEY:?set HERMES_API_KEY in deploy/.vps.env}"
 BRIDGE_TOKEN="${NOEDIS_BRIDGE_TOKEN:?set NOEDIS_BRIDGE_TOKEN in deploy/.vps.env}"
-WHATSAPP_NUMBER="${WHATSAPP_OWNER_NUMBER:?set WHATSAPP_OWNER_NUMBER in deploy/.vps.env}"
+WHATSAPP_NUMBER="${WHATSAPP_OWNER_NUMBER:-}"
+# Telegram is the cockpit's messaging channel; WhatsApp is parked by
+# default because an enabled-but-unpaired platform leaves the gateway
+# DEGRADED forever. Set WHATSAPP_ENABLED=true in deploy/.vps.env to
+# bring the QR pairing flow back.
+WA_ON="${WHATSAPP_ENABLED:-false}"
+TG_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
+TG_USERS="${TELEGRAM_ALLOWED_USERS:-}"
 # Every Hermes/Nous model on OpenRouter is text-only, so the agent cannot call
 # tools on one. The framework still does the work; a tool-capable model runs it.
 HERMES_MODEL_NAME="${HERMES_MODEL_NAME:-~deepseek/deepseek-flash-latest}"
@@ -70,12 +77,13 @@ hermes pm install agent-browser >/tmp/hermes-browser.log 2>&1 || {
 echo "  ✓ voice + browser extras ready"
 hermes tools list 2>/dev/null | grep -iE "web |browser " | sed "s/^/  /"'
 
-say "Configuring model, API server, voice and WhatsApp"
+say "Configuring model, API server, voice and messaging"
 put "${REPO_ROOT}/deploy/hermes-setup.sh" /tmp/hermes-setup.sh
 remote "chmod +x /tmp/hermes-setup.sh
 HERMES_API_KEY='$HERMES_KEY' NOEDIS_BRIDGE_TOKEN='$BRIDGE_TOKEN' \
 OPENROUTER_KEY='$OPENROUTER_KEY' HERMES_MODEL_NAME='$HERMES_MODEL_NAME' \
-WHATSAPP_OWNER_NUMBER='$WHATSAPP_NUMBER' \
+WHATSAPP_OWNER_NUMBER='$WHATSAPP_NUMBER' WHATSAPP_ENABLED='$WA_ON' \
+TELEGRAM_BOT_TOKEN='$TG_TOKEN' TELEGRAM_ALLOWED_USERS='$TG_USERS' \
 bash /tmp/hermes-setup.sh; rm -f /tmp/hermes-setup.sh"
 
 say "Installing the noedis-company skill"
@@ -86,12 +94,33 @@ remote 'install -m 644 /tmp/noedis-skill/SKILL.md ~/.hermes/skills/noedis-compan
 install -m 755 /tmp/noedis-skill/delegate.py ~/.hermes/skills/noedis-company/delegate.py
 rm -rf /tmp/noedis-skill; ls -l ~/.hermes/skills/noedis-company | tail -2'
 
-say "Gateway as a lingering user service"
+# Hermes records per-platform health in gateway_state.json and never
+# clears the entry when a platform is switched off: the record keeps the
+# dead run's writer_pid and its last error forever, so `gateway status`
+# keeps reporting "WhatsApp enabled but not paired" for a platform that
+# is no longer even started.
+#
+# Order matters, and both halves were learned the hard way. The gateway
+# holds this file in memory and rewrites it whole — once on shutdown and
+# again as it runs — so cleaning it while a gateway is alive only lasts
+# until that gateway's next write. The old process must be down first,
+# and the new one must not start until the file is clean.
+say "Stopping the gateway so its final state write cannot undo the cleanup"
 remote 'export PATH="$HOME/.local/bin:$PATH"
 sudo loginctl enable-linger vpsadmin
 hermes gateway install >/dev/null 2>&1 || true
-hermes gateway restart >/dev/null 2>&1 || hermes gateway start >/dev/null 2>&1 || true
-sleep 8
+hermes gateway stop >/dev/null 2>&1 || true
+sleep 4
+hermes gateway status 2>&1 | grep -iE "inactive|dead|stopped" | head -2 || true'
+
+say "Dropping stale platform health records"
+put "${REPO_ROOT}/deploy/hermes-clean-state.py" /tmp/hermes-clean-state.py
+remote "WHATSAPP_ENABLED='$WA_ON' python3 /tmp/hermes-clean-state.py; rm -f /tmp/hermes-clean-state.py"
+
+say "Starting the gateway"
+remote 'export PATH="$HOME/.local/bin:$PATH"
+hermes gateway start >/dev/null 2>&1 || hermes gateway restart >/dev/null 2>&1 || true
+sleep 12
 hermes gateway status 2>&1 | tail -6'
 
 say "Checking the API server"
@@ -99,4 +128,4 @@ remote 'K=$(grep -m1 ^API_SERVER_KEY= ~/.hermes/.env | cut -d= -f2-)
 curl -s -m 10 http://127.0.0.1:8642/health; echo
 curl -s -m 10 -H "Authorization: Bearer $K" http://127.0.0.1:8642/v1/models | head -c 160; echo'
 
-say "Done — pair WhatsApp from the cockpit's VOICE panel"
+say "Done — Telegram is the cockpit's channel (WhatsApp parked if disabled)"
