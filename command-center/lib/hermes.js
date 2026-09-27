@@ -211,9 +211,53 @@ export class HermesClient {
     }
   }
 
+  /**
+   * Which messaging channels the gateway is actually configured for.
+   *
+   * Read from Hermes' own .env, the file `hermes config set` writes, so
+   * the cockpit cannot drift from the gateway's real configuration. Only
+   * key *presence* is reported — token values never leave this function
+   * and never reach the browser.
+   */
+  channels() {
+    const out = {
+      telegram: { configured: false, authorisedUsers: 0 },
+      whatsapp: { enabled: false },
+    };
+    try {
+      const envFile = path.join(HERMES_HOME, '.env');
+      const text = fs.readFileSync(envFile, 'utf8');
+      const env = {};
+      for (const line of text.split('\n')) {
+        const m = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
+        if (m) env[m[1]] = m[2];
+      }
+      const truthy = (v) =>
+        ['1', 'true', 'yes', 'on'].includes(String(v || '').trim().toLowerCase());
+      const users = String(env.TELEGRAM_ALLOWED_USERS || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      out.telegram = {
+        configured: Boolean(String(env.TELEGRAM_BOT_TOKEN || '').trim()),
+        authorisedUsers: users.length,
+      };
+      out.whatsapp = { enabled: truthy(env.WHATSAPP_ENABLED) };
+    } catch (err) {
+      this.lastError = `channels: ${err.message}`;
+    }
+    return out;
+  }
+
   /** Full picture for the VOICE panel badge. */
   async status() {
-    const out = { reachable: false, model: null, error: null, whatsapp: this.whatsapp() };
+    const out = {
+      reachable: false,
+      model: null,
+      error: null,
+      whatsapp: this.whatsapp(),
+      channels: this.channels(),
+    };
     try {
       await this.health();
       const models = await this.models();

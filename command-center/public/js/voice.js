@@ -142,6 +142,11 @@ function setMode(next) {
 
 /* ── Hermes status ────────────────────────────────────────── */
 
+/* Last channel configuration seen in /status. refreshWhatsapp() needs it
+   to know whether the WhatsApp half is switched on at all, and it is
+   cheaper to remember it than to fetch /status a second time. */
+let lastChannels = null;
+
 async function refreshStatus() {
   const badge = $('hermes-state');
   if (!badge) return null;
@@ -149,17 +154,32 @@ async function refreshStatus() {
     const res = await fetch(`${BASE}/api/voice/status`, { headers: { Accept: 'application/json' } });
     const s = await res.json();
     const ok = Boolean(s?.hermes?.reachable);
+    const ch = s?.hermes?.channels || {};
+    const tg = Boolean(ch?.telegram?.configured);
+    const waOn = Boolean(ch?.whatsapp?.enabled);
     const linked = Boolean(s?.whatsapp?.linked);
+    lastChannels = ch;
     if (!ok) {
       badge.dataset.state = 'off';
       badge.textContent = 'OFFLINE';
       badge.title = s?.hermes?.error || 'Hermes neodpovídá';
-    } else if (!linked) {
+    } else if (tg) {
+      // Telegram is the live channel; it needs no scanning, so a
+      // configured bot is a working bot.
+      const n = Number(ch?.telegram?.authorisedUsers || 0);
+      badge.dataset.state = 'ok';
+      badge.textContent = 'HERMES · TG';
+      badge.title = `model ${s.hermes.model || '?'} · Telegram, oprávněných uživatelů: ${n}`;
+    } else if (waOn && !linked) {
       // Reachable but nobody has scanned the QR yet — say so rather than
       // looking healthy, because the WhatsApp half does not work until then.
       badge.dataset.state = 'warn';
       badge.textContent = 'PŘIPOJIT WA';
       badge.title = 'Hermes běží, ale WhatsApp ještě není spárovaný — otevři VOICE a naskenuj QR';
+    } else if (!waOn) {
+      badge.dataset.state = 'warn';
+      badge.textContent = 'BEZ KANÁLU';
+      badge.title = 'Hermes běží, ale není zapnutý žádný messenger — v Telegramu napiš @NOEDIS_bot';
     } else {
       badge.dataset.state = 'ok';
       badge.textContent = 'HERMES · WA';
@@ -175,10 +195,9 @@ async function refreshStatus() {
 
 function startStatusPolling() {
   if (statusTimer) return;
-  refreshStatus();
-  refreshWhatsapp();
-  statusTimer = setInterval(() => {
-    refreshStatus();
+  refreshStatus().then(() => refreshWhatsapp());
+  statusTimer = setInterval(async () => {
+    await refreshStatus();
     refreshWhatsapp();
   }, 8000);
 }
@@ -220,6 +239,13 @@ function loadQr() {
 async function refreshWhatsapp() {
   const card = $('wa-pair');
   if (!card) return;
+  // WhatsApp is parked while Telegram is the channel; showing a "pair me"
+  // card for a disabled platform would just be something to ignore.
+  if (lastChannels && lastChannels.whatsapp && !lastChannels.whatsapp.enabled) {
+    card.hidden = true;
+    stopQrRefresh();
+    return;
+  }
   try {
     const res = await fetch(`${BASE}/api/voice/whatsapp`, { headers: { Accept: 'application/json' } });
     if (!res.ok) {
