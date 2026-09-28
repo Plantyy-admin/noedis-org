@@ -1,105 +1,370 @@
-# NOEDIS org-blueprint
-# Generated from MASTER v0.3.0
+# NOEDIS org-blueprint — human-readable mirror of org-blueprint.json
+#
+# GENERATED FILE — do not edit by hand.
+#   canonical : command-center/config/org-blueprint.json
+#   regenerate: node deploy/gen-blueprint-yaml.mjs
+#
+# Source of truth: NOEDIS_AUTONOMOUS_COMPANY_MASTER_v0.3.0.md
+# Runtime invariant: every agent is pi_local -> OpenRouter (OPENROUTER_API_KEY).
 
+$schema: "./org-blueprint.schema.json"
+version: "0.5.0"
+generatedFrom: NOEDIS_COMPLETE_SUMMARY_v1.0.md
+updatedAt: "2026-09-26"
 company:
-  name: "Noedis"
-  issuePrefix: "NOE"
-  status: "active"
-  requireBoardApprovalForNewAgents: true
-
+  name: NOEDIS
+  issuePrefix: NOE
+  status: active
 runtime:
   adapterType: pi_local
   provider: openrouter
   credential: OPENROUTER_API_KEY
-
+  model: openrouter/~deepseek/deepseek-flash-latest
+  modelNote: Pi exposes models as `<provider>/<model>`; the `~` entries are Pi aliases. `deepseek/deepseek-v4.1-flash` (the previous pin) does not exist in pi 0.87.1 and made every run fail with adapter_failed. The evergreen `-latest` alias is used so a version bump cannot silently break the company again. Override with NOEDIS_MODEL.
+  invariant: Every agent runs pi_local through OpenRouter. No codex_local / claude_local / opencode_local.
+roleEnums:
+  _comment: Paperclip validates agents.role against a fixed enum. The org path (DEPARTMENT / Division / Team) is NOT stored in role - it lives in metadata. The designation lives in title.
+  vocabulary:
+    - ceo
+    - cto
+    - cmo
+    - cfo
+    - security
+    - engineer
+    - designer
+    - pm
+    - qa
+    - devops
+    - researcher
+    - general
+  default: general
+  departmentHeadByDept:
+    vyvoj: engineer
+    infra: devops
+    it: general
+    marketing: cmo
+    legal: general
+    finance: cfo
+    labs: researcher
+  byAgentName:
+    NOE: ceo
+    CODY: cto
+    RENE: pm
+    Frontend Engineer: engineer
+    UI Designer: designer
+    Backend Engineer: engineer
+    Game Designer: designer
+    3D Artist: designer
+    DevOps Engineer: devops
+    Security Engineer: security
+    QA Engineer: qa
+    Release Manager: qa
+    Support Specialist: general
+    Marketing Lead: cmo
+    Visual Artist: designer
+    Growth Hacker: cmo
+    Narrative Writer: designer
+    Audio Engineer: designer
+    Legal Counsel: general
+    Business Analyst: cfo
+    Research Scientist: researcher
+    UX Researcher: researcher
+    Economy Analyst: researcher
+    Content Lead: cmo
+reportingLaw:
+  chain: Specialist → Division Commander → Department Head → CODY → NOE → RENE → Founder
+  notifications:
+    - DONE
+    - DECISION
+    - RISK
+    - RELEASE
 founder:
-  title: "FOUNDER / HUMAN BOARD"
-  interface: "NOE COMMAND (input) → NOE REPORT (output)"
-
+  title: FOUNDER / HUMAN BOARD
+  interface: CHAT (input) → INBOX (output)
+  seat: human
 executive:
-  - name: "NOE COMMAND"
-    role: "Work intake, delegation, results acceptance"
-    status: "bootstrap"
-
-  - name: "NOE REPORT"
-    role: "Routine result channel, push notifications"
-    status: "bootstrap"
-
-  - name: "WorkforceArchitect"
-    role: "Dynamic agent instantiation, lazy loading of divisions/teams"
-    status: "bootstrap"
-
+  - key: noe
+    name: NOE
+    interface: Senior Advisor
+    title: Senior Advisor
+    role: Posoudí každý úkol a deleguje CODYmu; přijímá hotové výstupy od RENE
+    reportsTo: null
+    icon: brain
+    description: Jediné místo, kam vstupuje zadání od Foundera (přes CHAT). Posuzuje úkoly a předává je CODYmu.
+  - key: cody
+    name: CODY
+    interface: Right Hand
+    title: Right Hand
+    role: Right Hand — řídí všech sedm departmentů
+    reportsTo: noe
+    icon: zap
+    description: Pravá ruka NOEho. Rozděluje práci agentům v departmentech a řeší závislosti mezi nimi.
+  - key: rene
+    name: RENE
+    interface: Left Hand
+    title: Left Hand
+    role: Left Hand — sbírá výstupy a reportuje NOEovi
+    reportsTo: noe
+    icon: mail
+    description: Levá ruka NOEho. Sbírá odevzdané výstupy ze všech departmentů. Jediná rutinní cesta výsledků k Founderovi.
 departments:
-  - name: "USER"
+  - key: vyvoj
+    name: VÝVOJ
+    fullName: Development
+    head: Frontend Engineer
+    headTitle: Vedoucí oddělení VÝVOJ
+    purpose: Vývoj aplikací a hry — frontend, backend, herní klienti a server.
+    color: "#33ff33"
+    icon: cog
     divisions:
-      - "Product & Journey"
-      - "Experience & Accessibility"
-      - "Community & Support"
-
-  - name: "TECHNOLOGY"
+      - name: Frontend
+        teams:
+          - name: Web App
+            specialists:
+              - Frontend Engineer
+              - UI Designer
+            staffed:
+              - Frontend Engineer
+              - UI Designer
+          - name: Mobile App
+            specialists:
+              - Mobile Engineer
+      - name: Backend
+        teams:
+          - name: API Services
+            specialists:
+              - Backend Engineer
+            staffed:
+              - Backend Engineer
+          - name: Database
+            specialists:
+              - Database Engineer
+      - name: Game
+        teams:
+          - name: Game Clients
+            specialists:
+              - Game Designer
+              - "3D Artist"
+            staffed:
+              - Game Designer
+              - "3D Artist"
+          - name: Game Server
+            specialists:
+              - Game Server Engineer
+  - key: infra
+    name: INFRA
+    fullName: Infrastructure
+    head: DevOps Engineer
+    headTitle: Vedoucí oddělení INFRA
+    purpose: Infrastruktura, bezpečnost a QA — provoz, CI/CD, AppSec a testování.
+    color: "#00ccff"
+    icon: cloud
     divisions:
-      - "Application Engineering"
-      - "Game Engineering"
-      - "Platform Engineering"
-      - "Security & Identity"
-
-  - name: "GAME & ECONOMY"
+      - name: DevOps
+        teams:
+          - name: Infrastructure
+            specialists:
+              - DevOps Engineer
+            staffed:
+              - DevOps Engineer
+          - name: CI/CD
+            specialists:
+              - Release Engineer
+      - name: Security
+        teams:
+          - name: AppSec
+            specialists:
+              - Security Engineer
+            staffed:
+              - Security Engineer
+          - name: NetworkSec
+            specialists:
+              - Network Security Engineer
+      - name: QA
+        teams:
+          - name: E2E Testing
+            specialists:
+              - QA Engineer
+              - Release Manager
+            staffed:
+              - QA Engineer
+              - Release Manager
+          - name: Performance
+            specialists:
+              - Performance Engineer
+  - key: it
+    name: IT
+    fullName: Internal IT
+    head: Support Specialist
+    headTitle: Vedoucí oddělení IT
+    purpose: Interní IT — podpora zaměstnanců a správa aktiv.
+    color: "#4488ff"
+    icon: keyboard
     divisions:
-      - "Game Design"
-      - "Progression & Economy"
-      - "World Systems & Live Ops"
-
-  - name: "CREATIVE"
+      - name: Support
+        teams:
+          - name: Employee Support
+            specialists:
+              - Support Specialist
+            staffed:
+              - Support Specialist
+          - name: Asset Mgmt
+            specialists:
+              - Asset Manager
+  - key: marketing
+    name: MARKETING
+    fullName: Marketing
+    head: Marketing Lead
+    headTitle: Vedoucí oddělení MARKETING
+    purpose: Značka, růst a obsah — vizuální identita, kampaně, akvizice a multimédia.
+    color: "#ffb000"
+    icon: star
     divisions:
-      - "Brand & Visual"
-      - "3D Art"
-      - "Audio"
-      - "Narrative & Content"
-
-  - name: "MARKETING"
+      - name: Brand
+        teams:
+          - name: Visual Identity
+            specialists:
+              - Visual Artist
+            staffed:
+              - Visual Artist
+          - name: Campaigns
+            specialists:
+              - Marketing Lead
+            staffed:
+              - Marketing Lead
+      - name: Growth
+        teams:
+          - name: User Acquisition
+            specialists:
+              - Growth Hacker
+            staffed:
+              - Growth Hacker
+          - name: SEO
+            specialists:
+              - SEO Specialist
+      - name: Content
+        teams:
+          - name: Copywriting
+            specialists:
+              - Narrative Writer
+            staffed:
+              - Narrative Writer
+          - name: Multimedia
+            specialists:
+              - Audio Engineer
+            staffed:
+              - Audio Engineer
+  - key: legal
+    name: LEGAL
+    fullName: Legal
+    head: Legal Counsel
+    headTitle: Vedoucí oddělení LEGAL
+    purpose: Právo a shoda — duševní vlastnictví, licence, GDPR a smlouvy.
+    color: "#aa66ff"
+    icon: scales
     divisions:
-      - "Brand Communications"
-      - "Growth"
-
-  - name: "BUSINESS & FINANCE"
+      - name: IP
+        teams:
+          - name: Trademarks
+            specialists:
+              - Trademark Agent
+          - name: Licensing
+            specialists:
+              - Legal Counsel
+            staffed:
+              - Legal Counsel
+      - name: Compliance
+        teams:
+          - name: GDPR
+            specialists:
+              - Privacy Counsel
+          - name: Contracts
+            specialists:
+              - Contracts Specialist
+  - key: finance
+    name: FINANCE
+    fullName: Finance
+    head: Business Analyst
+    headTitle: Vedoucí oddělení FINANCE
+    purpose: Byznys model, monetizace, rozpočty a reporting.
+    color: "#ff66aa"
+    icon: diamond
     divisions:
-      - "Strategy & Monetization"
-      - "Finance & Funding"
-
-  - name: "LEGAL & COMPLIANCE"
+      - name: Strategy
+        teams:
+          - name: Business Model
+            specialists:
+              - Business Analyst
+            staffed:
+              - Business Analyst
+          - name: Pricing
+            specialists:
+              - Pricing Analyst
+      - name: Operations
+        teams:
+          - name: Budget
+            specialists:
+              - Finance Analyst
+          - name: Reporting
+            specialists:
+              - Reporting Analyst
+  - key: labs
+    name: LABS
+    fullName: Labs
+    head: Research Scientist
+    headTitle: Vedoucí oddělení LABS
+    purpose: Výzkum a prototypování — AI/ML, nové technologie, MVP a experimenty.
+    color: "#8800ff"
+    icon: alembic
     divisions:
-      - "IP & Licensing"
-      - "Privacy & Commercial"
-
-  - name: "QUALITY & RELEASE"
-    divisions:
-      - "QA & Verification"
-      - "Release & Change"
-      - "Knowledge & Canon"
-
-  - name: "LABS & RESEARCH"
-    divisions:
-      - "Agent & Automation R&D"
-      - "Product & Technology Research"
-
-reporting:
-  chain: "Specialist → Team Leader → Division Lead → Department Board → NOE COMMAND → NOE REPORT → Founder"
-  notifications: "DONE | DECISION | RISK | RELEASE"
-
+      - name: Research
+        teams:
+          - name: AI/ML
+            specialists:
+              - Research Scientist
+            staffed:
+              - Research Scientist
+          - name: Emerging Tech
+            specialists:
+              - Technology Scout
+      - name: Prototyping
+        teams:
+          - name: MVP
+            specialists:
+              - UX Researcher
+              - Economy Analyst
+              - Content Lead
+            staffed:
+              - UX Researcher
+              - Economy Analyst
+              - Content Lead
+          - name: Experiments
+            specialists:
+              - Prototyper
 secrets:
-  - "OPENROUTER_API_KEY"  # AI model access (Paperclip secret)
-  - "GITHUB_CREDENTIAL"   # Repository operations
-  - "CLOUDFLARE_CREDENTIAL" # DNS / edge / CDN
-  - "NTFY_CREDENTIAL"      # Mobile push notifications
-
+  - name: OPENROUTER_API_KEY
+    purpose: AI model access for every Pi agent
+    scope: company
+  - name: GITHUB_CREDENTIAL
+    purpose: Repository operations
+    scope: company
+  - name: CLOUDFLARE_CREDENTIAL
+    purpose: DNS / edge / CDN
+    scope: company
+  - name: NTFY_CREDENTIAL
+    purpose: Mobile push notifications
+    scope: company
 mobile:
-  input: "Paperclip Agent Chat (mobile browser)"
-  output: "ntfy push → https://notify.noedis.org"
-  voice: "Phone dictation (native)"
-
+  input: Paperclip Agent Chat (mobile browser) — phone dictation
+  output: ntfy push → https://notify.noedis.org
+  voice: Phone dictation (native)
 vps:
-  workspaces: "/srv/noedis/workspaces/"
-  artifacts: "/srv/noedis/artifacts/"
-  company: "/srv/noedis/company/"
-  backups: "/srv/noedis/backups/"
-  ssh_port: 501
+  ip: "76.13.154.124"
+  sshPort: 501
+  sshUser: vpsadmin
+  paperclipPort: 3100
+  commandCenterPort: 3200
+  workspaces: /srv/noedis/workspaces/
+  artifacts: /srv/noedis/artifacts/
+  company: /srv/noedis/company/
+  backups: /srv/noedis/backups/

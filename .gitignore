@@ -1,11 +1,13 @@
 # NOEDIS — agent workspace, never commit secrets
 
 # Dependencies
+node_modules/
 command-center/node_modules/
 
 # Environment & Secrets
 .env
 .env.*
+!.env.example
 *.local
 **/secrets/
 **/master.key
@@ -42,3 +44,50 @@ build/
 
 # Systemd user units
 ~/.config/systemd/user/noedis-*.service
+
+# Command Center
+command-center/.env
+command-center/test/out/
+.noedis-work/
+
+# Local deploy scratch
+*.bak-*
+
+# Deploy credentials
+deploy/.vps.env
+!.vps.env.example
+!deploy/.vps.env.example
+deploy/.redact-patterns
+
+# Local admin/credential scratch — these hold the VPS password and the founder
+# password. They live on the workstation only and must never be published.
+# Anchored with "/" on purpose: an unanchored login*.js would also swallow the
+# cockpit's own command-center/lib/login-page.js.
+/login.js
+/login2.js
+/login3.js
+/login4.js
+/login5.js
+/login-debug.js
+/login-direct.js
+/login-final.js
+/signin_admin.mjs
+/signin_admin2.mjs
+/preflight.sh
+/ssh_expect.sh
+/ssh_preflight.sh
+/create_paperclip_user.mjs
+/create_paperclip_user.cjs
+/token-dialog.mjs
+/get_cf_token.mjs
+/set-password.py
+/verify-password.mjs
+/deploy-org.py
+/deploy_premium.py
+/rebuild_gameplay.py
+/cf-login-server.mjs
+/approve_cli.sh
+/connect_cli.sh
+
+# The Hermes/OpenRouter key the cockpit and the agent share.
+/docs/hermes-api.txt

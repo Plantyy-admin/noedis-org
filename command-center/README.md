@@ -1,193 +1,180 @@
-# NOEDIS Command Center v0.3.0
+# NOEDIS Command Center v0.5.0
 
-**PAPERCLIP · GAMEPLAY · DASHBOARD**
+**STRUCTURE · CHAT · PAPERCLIP · GAMEPLAY · DASHBOARD · INBOX**
 
-Autonomous agent company command center for the NOEDIS ecosystem. Three views in one interface — Paperclip orchestration, pixel-art station gameplay, and real-time dashboard.
+The cockpit for the NOEDIS Autonomous Company. It reads the canonical org blueprint
+derived from **`NOEDIS_COMPLETE_SUMMARY_v1.0.md`**, merges it with the live Paperclip
+org, and presents the whole company — organisation and units — in one interface.
+
+Live state it reflects: **3 executive agents + 7 departments + 24 agents**,
+one org root (`NOE`), zero runtime drift.
+
+- **Live:** <https://noedis.org/>  (Paperclip: <https://www.noedis.org/>)
+- **Full documentation:** [`docs/COMMAND-CENTER.md`](../docs/COMMAND-CENTER.md)
 
 ---
 
-## Architecture
+## The bridge
+
+The header is a three-part grid, in the order the founder asked for:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  NOEDIS Command Center (port 3200)                          │
-│  ┌─────────────┐  ┌─────────────┐  ┌───────────────┐      │
-│  │  PAPERCLIP  │  │  GAMEPLAY   │  │  DASHBOARD    │      │
-│  │  (iframe)   │  │  (canvas)   │  │  (metrics)    │      │
-│  └──────┬──────┘  └──────┬──────┘  └───────┬───────┘      │
-│         │                │                 │              │
-│         └────────────────┼─────────────────┘              │
-│                          │                                │
-│                  ┌───────┴────────┐                       │
-│                  │  Node.js Server │                       │
-│                  │  API Proxy + WS │                       │
-│                  └───────┬────────┘                       │
-│                          │                                │
-│                  ┌───────┴────────┐                       │
-│                  │  Paperclip API  │                       │
-│                  │  127.0.0.1:3100 │                       │
-│                  └────────────────┘                       │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────┬───────────────────────────────┬──────────────────────────┐
+│ ◆  NOEDIS            │  STRUCTURE CHAT PAPERCLIP     │  ● LIVE  24 AGENTŮ       │
+│    COMPANY           │  GAMEPLAY DASHBOARD INBOX     │  ⏻ ODHLÁSIT SE           │
+└──────────────────────┴───────────────────────────────┴──────────────────────────┘
 ```
 
-## Quick Start
+- **Left** — mark, gradient wordmark, and the amber `COMPANY` subtitle.
+- **Centre** — the six stop switchers as violet gradient keys; the active key is lit.
+- **Right** — the Paperclip uplink read-out, the roster size, and the sign-out key.
+
+The whole cockpit wears the NOEDIS STATS instrument language: midnight glass, a
+blueprint field with corner glows and a slow aurora, a per-surface accent variable
+(`--nd-accent` / `--c`) driving every edge and glow, and read-outs in wide-tracked
+micro caps. Palette and rules: `public/css/style.css` §00.
+
+---
+
+## Quick start
 
 ```bash
-cd /var/home/plantyy/Projects/noedis-org/command-center
-
-# Install dependencies
 npm install
-
-# Start manually
-node server.js
-
-# Or use the start script
-./start.sh
+cp .env.example .env      # then set PAPERCLIP_API_KEY and the sign-in pair
+npm start                 # http://127.0.0.1:3200
 ```
 
-**Open:** `http://127.0.0.1:3200`
-
-## Views
-
-### PAPERCLIP
-Direct iframe integration with the Paperclip orchestration UI. Full access to:
-- Company management
-- Agent recruitment and management
-- Issue tracking
-- Approval workflows
-- Everything Paperclip offers
-
-### GAMEPLAY
-StarNet-inspired pixel-art space station visualization:
-- **Station Map**: Top-down pixel station with department rooms (USER, TECHNOLOGY, GAME & ECONOMY, CREATIVE, etc.)
-- **Corridors with data pulses**: Animated data packets flowing when agents are active
-- **CREW Rail**: Real-time agent list with status badges
-- **Agent Dots**: Pulsing dots on the map showing agent positions and activity
-- **HUD**: Station status indicator
-
-### DASHBOARD
-Real-time command center with:
-- Agent metrics (active, running, paused, error)
-- Task tracking (open, in progress, blocked, done)
-- Cost monitoring (spend, budget, utilization)
-- Pending items (approvals, incidents)
-- Company info (status, prefix, created)
-- Agent roster table
-- Organization chart (full NOEDIS hierarchy from MASTER v0.3.0)
-
-## Real-time Updates
-
-- WebSocket connection for instant dashboard updates
-- 4-second polling fallback for dashboard metrics
-- 8-second polling for agent list
-- Automatic reconnection with 3-second delay
-- Uplink status indicator in top navigation bar
-
-## NOEDIS Company Structure
-
-Pre-configured company: **Noedis** (ID: `66147035-...`)
-Issue prefix: `NOE`
-
-### Executive Board
-- **NOE COMMAND** — Work intake and delegation
-- **NOE REPORT** — Results channel and push notifications
-- **WorkforceArchitect** — Dynamic agent instantiation
-
-### Departments
-| Department | Divisions |
-|---|---|
-| USER | Product & Journey, Experience & Accessibility, Community & Support |
-| TECHNOLOGY | Application Engineering, Game Engineering, Platform Engineering, Security & Identity |
-| GAME & ECONOMY | Game Design, Progression & Economy, World Systems & Live Ops |
-| CREATIVE | Brand & Visual, 3D Art, Audio, Narrative & Content |
-| MARKETING | Brand Communications, Growth |
-| BUSINESS & FINANCE | Strategy & Monetization, Finance & Funding |
-| LEGAL & COMPLIANCE | IP & Licensing, Privacy & Commercial |
-| QUALITY & RELEASE | QA & Verification, Release & Change, Knowledge & Canon |
-| LABS & RESEARCH | Agent & Automation R&D, Product & Technology Research |
-
-### Reporting Chain
-```
-Specialist → Team Leader → Division Lead → Department Board → NOE COMMAND → NOE REPORT → Founder
-```
-
-Notifications: **DONE** | **DECISION** | **RISK** | **RELEASE**
-
-## Runtime Invariant
-
-All NOEDIS AI agents use:
-```
-Paperclip → pi_local → Pi coding agent → OpenRouter
-```
-
-- **OpenRouter** is the single AI provider gateway
-- **Pi** is the only agent runtime
-- No Codex CLI, Claude Code, or OpenCode for NOEDIS orchestration
-
-## System Service
-
-To run as a persistent systemd user service:
+Against the live VPS Paperclip, tunnel first:
 
 ```bash
-# Copy the service file
-cp /var/home/plantyy/Projects/noedis-org/command-center/noedis-command-center.service ~/.config/systemd/user/
-
-# Enable and start
-systemctl --user daemon-reload
-systemctl --user enable noedis-command-center
-systemctl --user start noedis-command-center
-
-# Check status
-systemctl --user status noedis-command-center
-
-# View logs
-journalctl --user -u noedis-command-center -f
+ssh -N -L 127.0.0.1:13100:127.0.0.1:3100 -p 501 vpsadmin@76.13.154.124 &
+# .env -> PAPERCLIP_URL=http://127.0.0.1:13100
 ```
 
-## VPS Workspace Structure
+Verify a running instance in a real browser (32 assertions + screenshots):
 
+```bash
+NOEDIS_AUTH_USER=noedis NOEDIS_AUTH_PASS=… npm test -- https://noedis.org
 ```
-/srv/noedis/
-├── workspaces/    # Agent workspaces (isolated per agent)
-├── artifacts/     # Completed work output
-├── company/       # Company configuration
-└── backups/       # Backup storage
-```
-
-## Configuration
-
-Environment variables (or edit `server.js`):
-
-| Variable | Default | Description |
-|---|---|---|
-| `NOEDIS_PORT` | `3200` | Command center HTTP port |
-| `PAPERCLIP_URL` | `http://127.0.0.1:3100` | Paperclip server URL |
-| `NOEDIS_COMPANY_ID` | `66147035-...` | Paperclip company UUID |
-
-## Credentials Needed
-
-| Credential | Purpose |
-|---|---|
-| `OPENROUTER_API_KEY` | AI model access for Pi agents |
-| GitHub PAT | Repository operations |
-| Cloudflare API Token | DNS / edge / CDN |
-| ntfy credentials | Mobile push notifications |
-
-## Deployment Status
-
-- [x] Paperclip running on `http://127.0.0.1:3100`
-- [x] Pi coding agent installed (v0.85.1)
-- [x] NOEDIS company created in Paperclip
-- [x] VPS workspace structure created
-- [x] Command Center built (PAPERCLIP | GAMEPLAY | DASHBOARD)
-- [x] WebSocket real-time updates
-- [x] Dashboard with agent/task/cost metrics
-- [x] Pixel-art station visualization
-- [ ] OpenRouter API key configuration (needs your input)
-- [ ] GitHub credential setup
-- [ ] Cloudflare + noedis.org DNS
-- [ ] ntfy push notifications
 
 ---
 
-*Generated from NOEDIS Autonomous Company OS — MASTER v0.3.0*
+## Sign-in
+
+The cockpit carries its own gate (`lib/auth.js`): a signed session cookie, a
+self-contained sign-in screen, and a working **ODHLÁSIT SE**. It replaced Caddy's
+HTTP basic auth, which the browser cannot sign out of. With no `NOEDIS_AUTH_PASS`
+set the gate is off and the cockpit is published openly — the boot log says which.
+See [`docs/COMMAND-CENTER.md` §7b](../docs/COMMAND-CENTER.md).
+
+---
+
+## The STRUCTURE panel
+
+The first tab, and the point of the cockpit. It renders two blocks:
+
+1. **ORG — vedení společnosti** — `FOUNDER → NOE (Senior Advisor) → CODY (Right
+   Hand) + RENE (Left Hand) → 7 department heads`, with live status per node.
+2. **JEDNOTKY SPOLEČNOSTI** — `Department → Division → Team → Agent`, expandable and
+   searchable. All 32 teams are listed; the 16 not yet staffed are marked
+   `neinstantováno`.
+
+Shape comes from `config/org-blueprint.json`; reality (which agents exist, their
+status, their unit) comes from Paperclip. Anything Paperclip has that the blueprint
+does not know about is shown under **NEPŘIŘAZENO** instead of being hidden.
+
+---
+
+## The VOICE panel
+
+Talk to the company. The mic is captured in the browser; everything else —
+speech recognition, the agent, the routing, the voice — runs on the VPS.
+
+```
+record → /noedis/api/voice/transcribe   (Hermes' local Whisper)
+       → /noedis/api/voice/ask          (Hermes + the cockpit's router)
+       → Paperclip issue + agent wake
+       → /noedis/api/voice/speak        (Edge TTS) → played back
+       → listening again
+```
+
+**Who gets the task.** In order: the agent picked under **KOMU**, then a name or
+department spoken at the *start* of the sentence — *„Cody, připrav nabídku"*,
+*„vývoji, oprav ten build"* — and otherwise **NOE**, the Senior Advisor, who
+routes it on. Spoken names tolerate Czech inflection and the way Whisper spells
+them (*Kody*, *Kojí*), because a recogniser normalises towards Czech
+orthography.
+
+**The hand-off is not the model's decision.** On the messaging channels Hermes
+decides for itself whether to call the `noedis-company` skill. Voice cannot
+afford that uncertainty, so `/ask` asks Hermes for one strict JSON answer —
+`{ say, task }` — and the *cockpit* creates the issue, wakes the assignee and
+writes one line to `delegations.jsonl`. If Hermes' own skill happens to fire
+anyway, that hand-off wins and no duplicate is created.
+
+**The orb shows it.** The APEX orb at `/voice` follows the loop over
+postMessage, lighting the circle of whichever agent the turn touched and
+colouring itself by what is happening: orange→red while you speak,
+silver→white→green while it thinks, blue→violet while it answers. Clicking a
+circle opens that agent's card and can hand it back to the panel as the next
+target.
+
+Verify the routing logic without a browser:
+
+```bash
+npm test            # node test/routing.mjs — 23 assertions, no network
+```
+
+---
+
+## Layout
+
+```
+command-center/
+├── server.js              Express app — the only holder of the Paperclip key
+├── lib/
+│   ├── config.js          env-driven configuration + blueprint loader
+│   ├── auth.js            session gate: signed cookie, credential check, throttling
+│   ├── login-page.js      the sign-in screen (self-contained HTML)
+│   ├── paperclip.js       authenticated Paperclip API client
+│   ├── hermes.js          Hermes client + the voice routing contract
+│   ├── agent-directory.js the live roster and spoken-addressee matching
+│   ├── voice-api.js       /noedis/api/voice/* — speech, routing, hand-off
+│   └── whatsapp-pair.js   the Baileys pairing bridge
+├── config/
+│   ├── org-blueprint.json canonical org (summary v1.0 §4.1 + §4.3) + model policy
+│   └── org-blueprint.yaml generated readable mirror
+├── public/
+│   ├── index.html         shell + the bridge
+│   ├── css/style.css      the Command Deck design system
+│   └── js/
+│       ├── app.js         bootstrap, navigation, sign-out, live wiring
+│       ├── api.js         fetch wrappers + WebSocket
+│       ├── store.js       blueprint × Paperclip merge
+│       ├── structure.js   STRUCTURE panel
+│       ├── dashboard.js   DASHBOARD panel
+│       ├── inbox.js       INBOX panel
+│       ├── chat.js        CHAT (work intake)
+│       ├── voice.js       VOICE — the voice loop, targeting and orb wiring
+│       └── util.js
+└── test/
+    ├── routing.mjs        addressee matching + the Hermes contract (no network)
+    ├── smoke.mjs          Playwright smoke test (32 assertions, signs in first)
+    └── shots.mjs          one screenshot per view
+```
+
+The board API key never reaches the browser: all Paperclip access is proxied through
+`/noedis/api/*` on the server.
+
+---
+
+## Company model policy
+
+```json
+"runtime": { "model": "openrouter/~deepseek/deepseek-flash-latest" }
+```
+
+One value, applied to every agent by the reconciler. The previous pin
+(`deepseek/deepseek-v4.1-flash`) does not exist in pi 0.87.1 and made every run fail
+with `adapter_failed`; see [`docs/COMMAND-CENTER.md` §5](../docs/COMMAND-CENTER.md)
+for the full story and how to change it.
