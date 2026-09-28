@@ -85,6 +85,48 @@ does not know about is shown under **NEPŘIŘAZENO** instead of being hidden.
 
 ---
 
+## The VOICE panel
+
+Talk to the company. The mic is captured in the browser; everything else —
+speech recognition, the agent, the routing, the voice — runs on the VPS.
+
+```
+record → /noedis/api/voice/transcribe   (Hermes' local Whisper)
+       → /noedis/api/voice/ask          (Hermes + the cockpit's router)
+       → Paperclip issue + agent wake
+       → /noedis/api/voice/speak        (Edge TTS) → played back
+       → listening again
+```
+
+**Who gets the task.** In order: the agent picked under **KOMU**, then a name or
+department spoken at the *start* of the sentence — *„Cody, připrav nabídku"*,
+*„vývoji, oprav ten build"* — and otherwise **NOE**, the Senior Advisor, who
+routes it on. Spoken names tolerate Czech inflection and the way Whisper spells
+them (*Kody*, *Kojí*), because a recogniser normalises towards Czech
+orthography.
+
+**The hand-off is not the model's decision.** On the messaging channels Hermes
+decides for itself whether to call the `noedis-company` skill. Voice cannot
+afford that uncertainty, so `/ask` asks Hermes for one strict JSON answer —
+`{ say, task }` — and the *cockpit* creates the issue, wakes the assignee and
+writes one line to `delegations.jsonl`. If Hermes' own skill happens to fire
+anyway, that hand-off wins and no duplicate is created.
+
+**The orb shows it.** The APEX orb at `/voice` follows the loop over
+postMessage, lighting the circle of whichever agent the turn touched and
+colouring itself by what is happening: orange→red while you speak,
+silver→white→green while it thinks, blue→violet while it answers. Clicking a
+circle opens that agent's card and can hand it back to the panel as the next
+target.
+
+Verify the routing logic without a browser:
+
+```bash
+npm test            # node test/routing.mjs — 23 assertions, no network
+```
+
+---
+
 ## Layout
 
 ```
@@ -94,7 +136,11 @@ command-center/
 │   ├── config.js          env-driven configuration + blueprint loader
 │   ├── auth.js            session gate: signed cookie, credential check, throttling
 │   ├── login-page.js      the sign-in screen (self-contained HTML)
-│   └── paperclip.js       authenticated Paperclip API client
+│   ├── paperclip.js       authenticated Paperclip API client
+│   ├── hermes.js          Hermes client + the voice routing contract
+│   ├── agent-directory.js the live roster and spoken-addressee matching
+│   ├── voice-api.js       /noedis/api/voice/* — speech, routing, hand-off
+│   └── whatsapp-pair.js   the Baileys pairing bridge
 ├── config/
 │   ├── org-blueprint.json canonical org (summary v1.0 §4.1 + §4.3) + model policy
 │   └── org-blueprint.yaml generated readable mirror
@@ -109,9 +155,10 @@ command-center/
 │       ├── dashboard.js   DASHBOARD panel
 │       ├── inbox.js       INBOX panel
 │       ├── chat.js        CHAT (work intake)
-│       ├── gameplay.js    GAMEPLAY canvas
+│       ├── voice.js       VOICE — the voice loop, targeting and orb wiring
 │       └── util.js
 └── test/
+    ├── routing.mjs        addressee matching + the Hermes contract (no network)
     ├── smoke.mjs          Playwright smoke test (32 assertions, signs in first)
     └── shots.mjs          one screenshot per view
 ```

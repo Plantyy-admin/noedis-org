@@ -1720,18 +1720,37 @@ select option, select optgroup { background: #071026; color: var(--nd-ink); }
   inset: 16px 22px auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* Right-aligned on purpose: the frame's own read-out (brand, clock, agent
+     count) owns the top-left corner, and two HUDs stacked there collided. */
+  justify-content: flex-end;
+  gap: 14px;
   pointer-events: none;
   font-size: 9px;
   font-weight: 900;
   letter-spacing: .26em;
   text-transform: uppercase;
 }
+/* The stage's own label. The frame inside paints the visible brand and clock,
+   so this one is kept for screen readers only rather than drawn twice. */
+.voice-hud-tag {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
 .voice-hud-tag { color: var(--nd-cyan); text-shadow: 0 0 14px #7fe9ff6b; }
 .voice-hud-state { color: var(--nd-ink-ghost); transition: color .3s; }
-.voice-hud-state[data-state="listening"] { color: var(--nd-green); text-shadow: 0 0 14px #63dda88c; }
-.voice-hud-state[data-state="thinking"] { color: var(--nd-product); text-shadow: 0 0 14px #ffd23f8c; }
+/* The HUD reads the same states as the orb, in the same colours: I speak =
+   orange/red, it thinks = silver/green, it answers = blue/violet. */
+.voice-hud-state[data-state="listening"] { color: var(--nd-orange); text-shadow: 0 0 14px #ff87378c; }
+.voice-hud-state[data-state="thinking"] { color: var(--nd-green); text-shadow: 0 0 14px #63dda88c; }
 .voice-hud-state[data-state="speaking"] { color: var(--nd-system); text-shadow: 0 0 14px #b07cff8c; }
+.voice-hud-state[data-state="delegating"] { color: var(--nd-product); text-shadow: 0 0 14px #ffd23f8c; }
 .voice-hud-state[data-state="error"] { color: var(--nd-magenta); text-shadow: 0 0 14px #dd397b8c; }
 
 .voice-centre {
@@ -2003,10 +2022,12 @@ select option, select optgroup { background: #071026; color: var(--nd-ink); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px 12px;
   flex: none;
   padding: 0 20px 16px;
 }
+.voice-opts .btn-mini { flex: none; white-space: nowrap; }
 .voice-tts {
   display: inline-flex;
   align-items: center;
@@ -2019,6 +2040,135 @@ select option, select optgroup { background: #071026; color: var(--nd-ink); }
   text-transform: uppercase;
 }
 .voice-tts input { accent-color: var(--nd-cyan); cursor: pointer; }
+
+/* ── KOMU: the voice target ───────────────────────────────────────────
+   AUTO reads the addressee out of the sentence ("Cody, …"); picking a name
+   here addresses that agent directly, whatever was said. */
+
+.voice-target {
+  flex: none;
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--nd-line);
+  background: linear-gradient(180deg, #0a1730a6, #08122100);
+}
+.voice-target-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+.voice-target-label {
+  color: var(--nd-cyan);
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+}
+.voice-target-count {
+  color: var(--nd-ink-ghost);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+}
+#voice-target {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--nd-line-cyan);
+  border-radius: var(--nd-r-chip);
+  background: var(--nd-inset, #060c1a);
+  color: var(--nd-ink);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+#voice-target:focus-visible { outline: 2px solid var(--nd-cyan); outline-offset: 1px; }
+.voice-target-hint {
+  margin-top: 7px;
+  color: var(--nd-ink-mute);
+  font-size: 10px;
+  letter-spacing: .04em;
+  line-height: 1.45;
+}
+
+/* ── PŘEDÁNO: what actually reached the board ── */
+
+.voice-dlg-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  max-height: 34%;
+  min-height: 0;
+  border-top: 1px solid var(--nd-line);
+}
+.voice-dlg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: none;
+  padding: 12px 20px 10px;
+}
+.voice-dlg-head h3 {
+  color: var(--nd-product);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  text-shadow: 0 0 14px #ffd23f5c;
+}
+.voice-delegations {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.voice-dlg {
+  padding: 9px 11px;
+  border: 1px solid var(--nd-line);
+  border-left: 2px solid var(--nd-green);
+  border-radius: 10px;
+  background: #0a1730a6;
+}
+.voice-dlg.err { border-left-color: var(--nd-magenta); }
+.voice-dlg-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.voice-dlg-who {
+  color: #b6ffe2;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.voice-dlg.err .voice-dlg-who { color: #ff9fbd; }
+.voice-dlg-time {
+  color: var(--nd-ink-ghost);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+.voice-dlg-title {
+  margin-top: 4px;
+  color: var(--nd-ink-dim);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.voice-dlg-id {
+  margin-top: 4px;
+  color: var(--nd-ink-ghost);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
 
 /* ══ 07 · PAPERCLIP — embedded native UI ═══════════════════════════════ */
 

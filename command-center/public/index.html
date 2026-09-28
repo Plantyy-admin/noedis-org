@@ -209,7 +209,7 @@
           <div class="voice-stage">
             <iframe id="apex-frame" title="APEX orb" loading="lazy" src="about:blank"></iframe>
             <div class="voice-hud">
-              <span class="voice-hud-tag" id="voice-hud-tag">APEX · HERMES VOICE</span>
+              <span class="voice-hud-tag" id="voice-hud-tag">APEX · HLASOVÉ ŘÍZENÍ FIRMY</span>
               <span class="voice-hud-state" id="voice-hud-state">STANDBY</span>
             </div>
             <div class="voice-centre">
@@ -233,6 +233,19 @@
               <span class="hermes-state" id="hermes-state">—</span>
             </header>
 
+            <!-- KOMU — the voice target. AUTO reads the name out of the
+                 sentence; picking one here addresses that agent directly. -->
+            <div class="voice-target">
+              <div class="voice-target-head">
+                <span class="voice-target-label">KOMU</span>
+                <span class="voice-target-count" id="voice-target-count">—</span>
+              </div>
+              <select id="voice-target" aria-label="Komu patří úkol"></select>
+              <div class="voice-target-hint" id="voice-target-hint">
+                Mluvíš na firmu — úkol převezme NOE a rozdělí ho.
+              </div>
+            </div>
+
             <!-- WhatsApp pairing — shown only while the bridge is unlinked -->
             <div class="wa-pair" id="wa-pair" hidden>
               <div class="wa-pair-head">
@@ -250,7 +263,7 @@
             </div>
 
             <div class="voice-log" id="voice-log">
-              <div class="empty-note">Zatím nic. Zmáčkni MLUVIT, nebo to napiš dolů.</div>
+              <div class="empty-note">Zatím nic. Zmáčkni MLUVIT a mluv — nebo to napiš dolů.</div>
             </div>
             <form id="voice-form" class="voice-form">
               <input id="voice-text" type="text" placeholder="…nebo napiš text" autocomplete="off" />
@@ -261,7 +274,22 @@
                 <input type="checkbox" id="voice-tts-toggle" checked />
                 <span>mluvit odpovědi</span>
               </label>
+              <label class="voice-tts">
+                <input type="checkbox" id="voice-autolisten" checked />
+                <span>poslouchat dál</span>
+              </label>
               <button class="btn-mini" id="voice-open-apex" type="button">APEX V NOVÉ KARTĚ ↗</button>
+            </div>
+
+            <!-- What has actually reached the board. -->
+            <div class="voice-dlg-wrap">
+              <div class="voice-dlg-head">
+                <h3>▮ PŘEDÁNO</h3>
+                <button class="btn-mini" id="voice-delegations-refresh" type="button">OBNOVIT</button>
+              </div>
+              <div class="voice-delegations" id="voice-delegations">
+                <div class="empty-note">Zatím žádné předání.</div>
+              </div>
             </div>
           </aside>
         </div>

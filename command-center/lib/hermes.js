@@ -160,8 +160,50 @@ export class HermesClient {
     return { reply: reply.trim(), usage: data?.usage || null, model: data?.model || this.model };
   }
 
-  /** Local Whisper through Hermes' own interpreter. */
-  async transcribe(filePath) {
+  /**
+   * One voice turn, with the company's routing contract.
+   *
+   * On the messaging channels Hermes decides for itself whether to call the
+   * `noedis-company` skill. Voice cannot afford that uncertainty: a task the
+   * founder spoke out loud must land on the board every time. So the cockpit
+   * asks for a strict JSON answer instead — a line to say and, optionally, a
+   * task with a target — and creates the issue itself. Same brain, same
+   * session, deterministic outcome.
+   *
+   * Returns `{ say, task, raw }`; `task` is null for anything that is not work.
+   */
+  async route(text, { agents = [], target = null, user = 'founder' } = {}) {
+    const data = await this.request('/v1/chat/completions', {
+      method: 'POST',
+      timeoutMs: this.chatTimeoutMs,
+      body: {
+        model: this.model,
+        user,
+        temperature: 0.3,
+        messages: [{ role: 'user', content: buildRoutingPrompt({ text, agents, target }) }],
+      },
+    });
+    const reply = data?.choices?.[0]?.message?.content;
+    if (typeof reply !== 'string') {
+      throw new Error(`Hermes vrátil neočekávanou odpověď: ${JSON.stringify(data).slice(0, 200)}`);
+    }
+    const parsed = extractJson(reply);
+    if (!parsed) {
+      // The agent answered in prose. That is a fine answer — just not a task.
+      return { say: reply.trim(), task: null, raw: reply, parsed: false, model: data?.model };
+    }
+    const say = String(parsed.say || parsed.reply || '').trim();
+    const task = normalizeTask(parsed.task);
+    return {
+      say: say || (task ? `Předávám to: ${task.title}.` : reply.trim()),
+      task,
+      raw: reply,
+      parsed: true,
+      model: data?.model,
+    };
+  }
+
+  /** Local Whisper through Hermes' own interpreter. */  async transcribe(filePath) {
     const python = await this.resolvePython();
     if (!python) throw new Error('nenašel jsem interpret s faster_whisper (Hermes STT není nainstalované)');
     const script = path.join(path.dirname(new URL(import.meta.url).pathname), 'stt.py');
@@ -276,6 +318,113 @@ export class HermesClient {
     const { stdout } = await run(this.cli, args, { timeout: timeoutMs, maxBuffer: 4 * 1024 * 1024 });
     return String(stdout);
   }
+}
+
+/* ── the voice routing contract ───────────────────────────── */
+
+/**
+ * The prompt that turns one spoken sentence into either a reply or a real
+ * board task. It is deliberately explicit about the output format and about
+ * *not* calling tools: the cockpit owns the hand-off, so there is exactly one
+ * place a task can be created and exactly one place it can be observed.
+ */
+export function buildRoutingPrompt({ text, agents = [], target = null }) {
+  const directory = agents.length
+    ? agents
+        .map((a) => {
+          const where = a.department ? `útvar ${a.department}` : a.title || a.role || '';
+          const boss = a.reportsToName ? ` · nadřízený ${a.reportsToName}` : '';
+          return `- ${a.id} | ${a.name} | ${where}${boss}`;
+        })
+        .join('\n')
+    : '- (adresář se nepodařilo načíst)';
+
+  const chosen = target
+    ? `${target.name} (${target.id}) — použij ho, pokud founder sám nejmenuje někoho jiného.`
+    : 'neurčeno — použij NOE (Senior Advisor).';
+
+  return [
+    'Jsi APEX, hlasové rozhraní firmy NOEDIS. Founder k tobě mluví nahlas.',
+    '',
+    'Rozhodni dvě věci:',
+    '1. Je to PRÁCE pro firmu (postavit, opravit, zjistit, napsat, zařídit, připravit),',
+    '   nebo jen dotaz / rozhovor, na který umíš odpovědět hned?',
+    '2. Pokud je to práce — kterému agentovi patří?',
+    '',
+    'Pravidlo pro pochybnost: kdyby founder čekal, že na tom člověk stráví reálný čas,',
+    'je to práce. Kdyby čekal odpověď hned, odpověz sám a task nech null.',
+    '',
+    'ADRESÁŘ AGENTŮ (id | jméno | útvar · nadřízený)',
+    directory,
+    '',
+    `VYBRANÝ CÍL: ${chosen}`,
+    '',
+    'FOUNDER ŘEKL:',
+    `"${String(text).replace(/"/g, "'")}"`,
+    '',
+    'ODPOVĚZ VÝHRADNĚ JEDNÍM JSON OBJEKTEM — nic před ním, nic za ním,',
+    'žádné markdown ploty, žádné komentáře. Nevolej žádné nástroje ani skilly;',
+    'úkol zakládá kokpit podle tvého JSONu.',
+    '',
+    'Když jde jen o odpověď:',
+    '{"say":"<co říct nahlas>","task":null}',
+    '',
+    'Když jde o práci:',
+    '{"say":"<krátké potvrzení, co a komu předáváš>","task":{"title":"<rozkaz, max 80 znaků>","brief":"<co, proč, omezení a jak poznat hotovo>","target":"<přesné id nebo jméno agenta z adresáře>"}}',
+    '',
+    'Pravidla pro "say": česky, 1–2 krátké věty, psané pro předčítání nahlas —',
+    'žádné odrážky, žádné markdown, žádné URL, žádné id.',
+  ].join('\n');
+}
+
+/** Pull the first balanced JSON object out of a model answer. Tolerates the
+ *  fences and chatter a chat model adds even when told not to. */
+export function extractJson(text) {
+  const s = String(text || '');
+  const start = s.indexOf('{');
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return JSON.parse(s.slice(start, i + 1));
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function normalizeTask(task) {
+  if (!task || typeof task !== 'object') return null;
+  const title = String(task.title || '').trim();
+  if (!title) return null;
+  const brief = String(task.brief || task.description || '').trim();
+  const target = String(task.target || '').trim();
+  return {
+    title: title.slice(0, 200),
+    brief: brief || title,
+    target: target || null,
+    priority: ['low', 'medium', 'high', 'critical'].includes(String(task.priority || '').toLowerCase())
+      ? String(task.priority).toLowerCase()
+      : null,
+  };
 }
 
 export { HERMES_HOME };

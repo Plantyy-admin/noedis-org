@@ -27,12 +27,14 @@
 
 import express from 'express';
 import http from 'node:http';
+import crypto from 'node:crypto';
 import { WebSocketServer } from 'ws';
 import { config, readBlueprint, log } from './lib/config.js';
 import { PaperclipClient, PaperclipError } from './lib/paperclip.js';
 import { createAuth } from './lib/auth.js';
 import { renderLoginPage } from './lib/login-page.js';
 import { HermesClient } from './lib/hermes.js';
+import { AgentDirectory } from './lib/agent-directory.js';
 import { createVoiceApi } from './lib/voice-api.js';
 import { WhatsAppPairing } from './lib/whatsapp-pair.js';
 
@@ -59,6 +61,9 @@ const whatsapp = new WhatsAppPairing({
   mode: config.whatsapp.mode,
   hermesCli: config.hermes.cli,
 });
+
+/** The live Paperclip roster, shaped for the VOICE panel and the orb. */
+const agentDirectory = new AgentDirectory({ paperclip });
 
 const auth = createAuth(config.auth);
 
@@ -197,15 +202,31 @@ app.get('/noedis/api/blueprint', route(async (_req, res) => {
    Speech and the agent itself both live in Hermes on this host, so the
    cockpit only carries the audio and the text across. The delegate route is
    the one path a local script may call with the bridge token instead of a
-   session: that is how Hermes hands a task to NOE. */
+   session: that is how Hermes hands a task to NOE. The guard below repeats
+   the token check so the route stays closed even on a host that runs with
+   the cockpit's sign-in switched off. */
+const bridgeToken = String(config.auth.bridgeToken || '');
+const bridgeGuard = (req) => {
+  if (!bridgeToken) return false;
+  const header = String(req.headers.authorization || '');
+  if (!header.startsWith('Bearer ')) return false;
+  const supplied = header.slice(7).trim();
+  if (supplied.length !== bridgeToken.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(supplied), Buffer.from(bridgeToken));
+};
+
 app.use(
   '/noedis/api/voice',
   createVoiceApi({
     hermes,
     paperclip,
+    agentDirectory,
     companyId: config.paperclip.companyId,
     noeAgentId: config.hermes.noeAgentId,
     delegationLog: config.hermes.delegationLog || path.join(config.root, 'delegations.jsonl'),
+    // Only enforced when a token exists, so a cockpit without one keeps the
+    // behaviour it had — the sign-in gate is still in front of every route.
+    onDelegate: bridgeToken ? bridgeGuard : null,
     whatsapp,
   }),
 );
